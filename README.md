@@ -3,14 +3,20 @@
 [![Python](https://img.shields.io/badge/Python-3.11-blue.svg)](https://www.python.org/)
 [![FastAPI](https://img.shields.io/badge/FastAPI-0.136+-green.svg)](https://fastapi.tiangolo.com/)
 [![PyTorch](https://img.shields.io/badge/PyTorch-2.0+-red.svg)](https://pytorch.org/)
-[![Docker](https://img.shields.io/badge/Docker-Available-blue.svg)](https://github.com/jackstealer/DeepSea-eDNA/pkgs/container/deepsea-edna)
+[![Docker](https://img.shields.io/badge/Docker-ghcr.io-blue.svg)](https://github.com/jackstealer/DeepSea-eDNA/pkgs/container/deepsea-edna)
+[![CI/CD](https://github.com/jackstealer/DeepSea-eDNA/actions/workflows/docker-build.yml/badge.svg)](https://github.com/jackstealer/DeepSea-eDNA/actions)
 [![License](https://img.shields.io/badge/License-MIT-yellow.svg)](LICENSE)
-
-> **🐳 Docker Package Available:** `docker pull ghcr.io/jackstealer/deepsea-edna:latest`
 
 **Production-ready MLOps platform for marine taxonomic classification using deep learning on environmental DNA sequences.**
 
-🎉 **ALL 15 FEATURES COMPLETE** - Production Ready!
+### 🚀 Quick Deploy
+
+```bash
+docker pull ghcr.io/jackstealer/deepsea-edna:latest
+docker run -d -p 8000:8000 ghcr.io/jackstealer/deepsea-edna:latest
+```
+
+🎉 **ALL 15 FEATURES COMPLETE** | ⚡ **94.18% Accuracy** | 🐳 **Auto-Deploy with CI/CD**
 
 ---
 
@@ -55,6 +61,14 @@ DeepSea eDNA AI is a comprehensive machine learning operations platform that pro
 - ✅ **Caching** - Redis with in-memory fallback
 - ✅ **Export Formats** - BIOM, JSON, CSV, FASTA, TSV
 
+### 🚀 CI/CD & Deployment
+
+- ✅ **GitHub Actions** - Automated testing on every PR
+- ✅ **Docker Publishing** - Auto-build and push to GHCR
+- ✅ **Multi-stage Builds** - Optimized image size
+- ✅ **Version Tagging** - Semantic versioning support
+- ✅ **One-Command Deploy** - `docker pull` and run
+
 ### ✅ Quality & Testing
 
 - ✅ **Data Validation** - Sequence quality checks
@@ -85,23 +99,100 @@ pip install -r backend/requirements.txt
 uvicorn app.main:app --reload
 ```
 
-### Docker Deployment (Recommended)
+### Docker Deployment (Recommended) 🐳
 
-#### Option 1: Pull from GitHub Container Registry (Easiest)
+#### Option 1: Pull from GitHub Container Registry (Production-Ready)
+
+Our Docker images are automatically built and published with every commit to main!
 
 ```bash
-# Pull the latest image
+# Pull the latest stable release
 docker pull ghcr.io/jackstealer/deepsea-edna:latest
 
-# Run container
+# Run with basic configuration
 docker run -d \
   --name deepsea-edna \
   -p 8000:8000 \
-  -e SECRET_KEY=your-secret-key \
+  -e SECRET_KEY=your-secret-key-here \
   ghcr.io/jackstealer/deepsea-edna:latest
 
-# Access API at http://localhost:8000
+# Access your API
+curl http://localhost:8000/health
+open http://localhost:8000/api/docs
 ```
+
+**Advanced Configuration:**
+
+```bash
+# Run with full production setup
+docker run -d \
+  --name deepsea-edna-prod \
+  -p 8000:8000 \
+  -e ENVIRONMENT=production \
+  -e SECRET_KEY=your-secret-key \
+  -e DATABASE_URL=postgresql://user:pass@db:5432/deepsea \
+  -e REDIS_URL=redis://redis:6379/0 \
+  -e MODEL_DIR=/app/ml_models \
+  -v $(pwd)/ml_models:/app/ml_models \
+  --restart unless-stopped \
+  ghcr.io/jackstealer/deepsea-edna:latest
+```
+
+**Using Docker Compose:**
+
+```yaml
+version: "3.8"
+services:
+  api:
+    image: ghcr.io/jackstealer/deepsea-edna:latest
+    ports:
+      - "8000:8000"
+    environment:
+      - SECRET_KEY=${SECRET_KEY}
+      - DATABASE_URL=postgresql://postgres:password@db:5432/deepsea
+      - REDIS_URL=redis://redis:6379/0
+    depends_on:
+      - db
+      - redis
+
+  db:
+    image: postgres:15-alpine
+    environment:
+      POSTGRES_DB: deepsea
+      POSTGRES_PASSWORD: password
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+
+  redis:
+    image: redis:7-alpine
+
+volumes:
+  postgres_data:
+```
+
+Run with: `docker-compose up -d`
+
+📖 **Complete Docker documentation:** [DOCKER_PACKAGE.md](DOCKER_PACKAGE.md)
+
+#### Option 2: Build from Source
+
+```bash
+# Clone and build
+git clone https://github.com/jackstealer/DeepSea-eDNA.git
+cd DeepSea-eDNA
+
+# Build image
+docker build -t deepsea-edna-custom .
+
+# Run your custom build
+docker run -d -p 8000:8000 deepsea-edna-custom
+```
+
+ghcr.io/jackstealer/deepsea-edna:latest
+
+# Access API at http://localhost:8000
+
+````
 
 #### Option 2: Build from Source
 
@@ -111,7 +202,7 @@ docker build -t deepsea-edna-api .
 
 # Run container
 docker run -d -p 8000:8000 deepsea-edna-api
-```
+````
 
 📖 **Full Docker documentation:** [DOCKER_PACKAGE.md](DOCKER_PACKAGE.md)
 
