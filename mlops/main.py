@@ -7,7 +7,7 @@ import sys
 import io
 import csv
 from pathlib import Path
-from typing import List, Callable
+from typing import List, Callable, Optional
 from contextlib import asynccontextmanager
 
 import torch
@@ -743,3 +743,213 @@ if __name__ == "__main__":
             raise
         except Exception as e:
             raise HTTPException(status_code=500, detail=f"Download failed: {str(e)}")
+
+    # ========================================
+    # AUTHENTICATION ENDPOINTS - Feature #3
+    # ========================================
+    
+    from auth import AuthService, get_api_key, require_api_key
+    from pydantic import EmailStr
+    
+    class APIKeyCreate(BaseModel):
+        """Request model for creating API key"""
+        name: str = Field(..., description="Descriptive name for this API key")
+        user_email: EmailStr = Field(..., description="User email address")
+        organization: Optional[str] = Field(None, description="Organization name")
+        rate_limit: int = Field(1000, description="Requests per hour limit")
+        expires_days: int = Field(365, description="Days until expiration")
+    
+    class APIKeyResponse(BaseModel):
+        """Response model for API key"""
+        id: int
+        name: str
+        user_email: str
+        organization: Optional[str]
+        rate_limit: int
+        is_active: bool
+        total_requests: int
+        created_at: str
+        expires_at: Optional[str]
+        last_used_at: Optional[str]
+    
+    @app.post("/auth/keys")
+    def create_new_api_key(
+        key_data: APIKeyCreate,
+        db: Session = Depends(get_db)
+    ):
+        """
+        Create a new API key
+        
+        ⚠️ WARNING: The plain text key is only shown once! Save it securely.
+        
+        - **name**: Descriptive name (e.g., "Production Server", "Dev Environment")
+        - **user_email**: Email address of key owner
+        - **organization**: Optional organization name
+        - **rate_limit**: Requests per hour (default: 1000)
+        - **expires_days**: Days until expiration (default: 365)
+        """
+        try:
+            api_key_record, plain_key = AuthService.create_api_key(
+                db=db,
+                name=key_data.name,
+                user_email=key_data.user_email,
+                organization=key_data.organization,
+                rate_limit=key_data.rate_limit,
+                expires_days=key_data.expires_days
+            )
+            
+            return {
+                "message": "API key created successfully",
+                "api_key": plain_key,
+                "key_id": api_key_record.id,
+                "name": api_key_record.name,
+                "user_email": api_key_record.user_email,
+                "rate_limit": api_key_record.rate_limit,
+                "expires_at": api_key_record.expires_at.isoformat(),
+                "warning": "⚠️ Save this key securely! It won't be shown again."
+            }
+            
+        except Exception as e:
+            raise HTTPException(status_code=500, detail=f"Failed to create API key: {str(e)}")
+    
+    @app.get("/auth/keys")
+    def list_api_keys(
+        user_email: Optional[str] = None,
+        db: Session = Depends(get_db)
+    ):
+        """
+        List all API keys (optionally filtered by user email)
+        
+        - **user_email**: Filter by user email (optional)
+        """
+        try:
+            keys = AuthService.list_api_keys(db, user_email)
+            
+            return {
+                "total": len(keys),
+                "keys": [
+                    {
+                        "id": key.id,
+                        "name": key.name,
+                        "user_email": key.user_email,
+                        "organization": key.organization,
+                        "rate_limit": key.rate_limit,
+                        "is_active": bool(key.is_active),
+                        "total_requests": key.total_requests,
+                        "created_at": key.created_at.isoformat() if key.created_at else None,
+                        "expires_at": key.expires_at.isoformat() if key.expires_at else None,
+                        "last_used_at": key.last_used_at.isoformat() if key.last_used_at else None
+                    }
+                    for key in keys
+                ]
+            }
+            
+        except Exception as e:
+            raise HTTPException(status_code=500, detail=f"Failed to list API keys: {str(e)}")
+    
+    @app.delete("/auth/keys/{key_id}")
+    def revoke_api_key(
+        key_id: int,
+        db: Session = Depends(get_db)
+    ):
+        """
+        Revoke (deactivate) an API key
+        
+        - **key_id**: ID of the API key to revoke
+        """
+        try:
+            success = AuthService.revoke_api_key(db, key_id)
+            
+            if not success:
+                raise HTTPException(status_code=404, detail="API key not found")
+            
+            return {
+                "message": "API key revoked successfully",
+                "key_id": key_id
+            }
+            
+        except HTTPException:
+            raise
+        except Exception as e:
+            raise HTTPException(status_code=500, detail=f"Failed to revoke API key: {str(e)}")
+    
+    @app.get("/auth/me")
+    def get_current_key_info(
+        api_key: APIKey = Security(require_api_key)
+    ):
+        """
+        Get information about the current API key
+        
+        Requires: X-API-Key header
+        """
+        return {
+            "key_id": api_key.id,
+            "name": api_key.name,
+            "user_email": api_key.user_email,
+            "organization": api_key.organization,
+            "rate_limit": api_key.rate_limit,
+            "total_requests": api_key.total_requests,
+            "created_at": api_key.created_at.isoformat() if api_key.created_at else None,
+            "expires_at": api_key.expires_at.isoformat() if api_key.expires_at else None,
+            "last_used_at": api_key.last_used_at.isoformat() if api_key.last_used_at else None
+        }
+    
+    @app.get("/auth/usage")
+    def get_api_usage(
+        api_key: APIKey = Security(require_api_key)
+    ):
+        """
+        Get usage statistics for current API key
+        
+        Requires: X-API-Key header
+        """
+        # Calculate usage percentage
+        usage_percentage = (api_key.total_requests / api_key.rate_limit * 100) if api_key.rate_limit > 0 else 0
+        
+        # Check if near limit
+        status_text = "normal"
+        if usage_percentage >= 90:
+            status_text = "critical"
+        elif usage_percentage >= 75:
+            status_text = "warning"
+        
+        return {
+            "key_name": api_key.name,
+            "total_requests": api_key.total_requests,
+            "rate_limit": api_key.rate_limit,
+            "usage_percentage": round(usage_percentage, 2),
+            "status": status_text,
+            "requests_remaining": max(0, api_key.rate_limit - api_key.total_requests)
+        }
+
+    # ========================================
+    # SECURED ENDPOINTS (Optional Auth)
+    # ========================================
+    
+    # Note: Existing /predict endpoint now supports optional authentication
+    # If X-API-Key header is provided, it tracks usage
+    # If not provided, prediction still works (for backwards compatibility)
+    
+    @app.post("/v2/predict", response_model=PredictionOutput)
+    def predict_v2_authenticated(
+        data: SequenceInput,
+        request: Request,
+        db: Session = Depends(get_db),
+        api_key: APIKey = Security(require_api_key)
+    ):
+        """
+        Authenticated prediction endpoint (requires API key)
+        
+        Same as /predict but requires authentication via X-API-Key header
+        Tracks usage and enforces rate limits
+        
+        - **sequence**: DNA sequence (50-1500 bp, characters: A, C, G, T, N)
+        - **Headers**: X-API-Key: your_api_key_here
+        """
+        # Add API key info to metadata
+        result = predict(data, request, db)
+        
+        # Log that this was an authenticated request
+        # (already tracked by get_api_key dependency)
+        
+        return result
