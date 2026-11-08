@@ -85,6 +85,15 @@ def load_mlflow_model():
 
 def get_model_version():
     """Get current champion model version from MLflow"""
+    # Skip MLflow check if not accessible
+    try:
+        import requests
+        response = requests.get(MLFLOW_TRACKING_URI.replace(':5000', ':5000/health'), timeout=2)
+        if response.status_code != 200:
+            return "local"
+    except:
+        return "local"
+    
     try:
         client = mlflow.tracking.MlflowClient(tracking_uri=MLFLOW_TRACKING_URI)
         champion_version = client.get_model_version_by_alias(
