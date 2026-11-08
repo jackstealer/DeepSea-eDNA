@@ -88,6 +88,11 @@ async def predict_sequence(request: PredictRequest, req: Request):
     try:
         model_loader = req.app.state.model_loader
         cache_manager = req.app.state.cache_manager
+        monitoring = req.app.state.monitoring_manager
+        
+        # Track metrics
+        if monitoring:
+            monitoring.increment_prediction_count()
         
         # Check cache if enabled
         cached_result = None
@@ -99,12 +104,20 @@ async def predict_sequence(request: PredictRequest, req: Request):
         
         if cached_result:
             logger.info("Returning cached prediction")
+            if monitoring:
+                monitoring.track_cache_hit("prediction")
             return PredictResponse(**cached_result, cached=True)
+        
+        # Track cache miss
+        if monitoring and request.use_cache:
+            monitoring.track_cache_miss("prediction")
         
         # Make prediction
         predictions = model_loader.predict([request.sequence])
         
         if not predictions:
+            if monitoring:
+                monitoring.increment_error_count()
             raise HTTPException(status_code=400, detail="Prediction failed")
         
         result = predictions[0]
@@ -133,4 +146,6 @@ async def predict_sequence(request: PredictRequest, req: Request):
         
     except Exception as e:
         logger.error(f"Prediction error: {e}")
+        if monitoring:
+            monitoring.increment_error_count()
         raise HTTPException(status_code=500, detail=str(e))
