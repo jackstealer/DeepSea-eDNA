@@ -19,8 +19,13 @@ COPY main.py .
 COPY models/ ./models/
 
 # Copy backend modules (needed for model loading)
-COPY ../backend/app/models/ ./backend/app/models/
-COPY ../backend/app/services/ ./backend/app/services/
+# Note: When building, use: docker build -f mlops/Dockerfile -t deepsea-edna-api:v1.0 .
+# This sets context to root, allowing access to backend/
+COPY backend/__init__.py ./backend/
+COPY backend/app/__init__.py ./backend/app/
+COPY backend/app/core/__init__.py ./backend/app/core/
+COPY backend/app/models/ ./backend/app/models/
+COPY backend/app/services/ ./backend/app/services/
 
 # Expose port
 EXPOSE 8000

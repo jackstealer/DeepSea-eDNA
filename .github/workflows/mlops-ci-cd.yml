@@ -2,9 +2,9 @@ name: MLOps CI/CD Pipeline
 
 on:
   push:
-    branches: [ main, develop ]
+    branches: [main, develop]
   pull_request:
-    branches: [ main ]
+    branches: [main]
   workflow_dispatch:
 
 env:
@@ -16,96 +16,103 @@ jobs:
   test:
     name: Lint and Test
     runs-on: ubuntu-latest
-    
+
     steps:
-    - name: Checkout code
-      uses: actions/checkout@v4
-    
-    - name: Set up Python
-      uses: actions/setup-python@v4
-      with:
-        python-version: '3.11'
-    
-    - name: Cache dependencies
-      uses: actions/cache@v3
-      with:
-        path: ~/.cache/pip
-        key: ${{ runner.os }}-pip-${{ hashFiles('mlops/requirements.txt') }}
-        restore-keys: |
-          ${{ runner.os }}-pip-
-    
-    - name: Install dependencies
-      run: |
-        cd mlops
-        pip install -r requirements.txt
-        pip install pytest pytest-cov flake8 black
-    
-    - name: Lint with flake8
-      run: |
-        cd mlops
-        flake8 main.py train_with_mlflow.py --max-line-length=120 --ignore=E501,W503
-      continue-on-error: true
-    
-    - name: Format check with black
-      run: |
-        cd mlops
-        black --check main.py train_with_mlflow.py --line-length=120
-      continue-on-error: true
-    
-    - name: Run tests
-      run: |
-        cd mlops
-        pytest test_api.py -v --cov=main --cov-report=xml
-    
-    - name: Upload coverage to Codecov
-      uses: codecov/codecov-action@v3
-      with:
-        file: ./mlops/coverage.xml
-        flags: unittests
-        name: codecov-umbrella
-      continue-on-error: true
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v4
+        with:
+          python-version: "3.11"
+
+      - name: Cache dependencies
+        uses: actions/cache@v3
+        with:
+          path: ~/.cache/pip
+          key: ${{ runner.os }}-pip-${{ hashFiles('mlops/requirements.txt') }}
+          restore-keys: |
+            ${{ runner.os }}-pip-
+
+      - name: Install dependencies
+        run: |
+          cd mlops
+          pip install -r requirements.txt
+          pip install pytest pytest-cov flake8 black
+
+      - name: Install backend dependencies
+        run: |
+          cd backend
+          pip install -r requirements.txt
+
+      - name: Lint with flake8
+        run: |
+          cd mlops
+          flake8 main.py train_with_mlflow.py --max-line-length=120 --ignore=E501,W503
+        continue-on-error: true
+
+      - name: Format check with black
+        run: |
+          cd mlops
+          black --check main.py train_with_mlflow.py --line-length=120
+        continue-on-error: true
+
+      - name: Run tests
+        run: |
+          export PYTHONPATH="${PYTHONPATH}:${GITHUB_WORKSPACE}"
+          cd mlops
+          pytest test_api.py -v --cov=main --cov-report=xml
+
+      - name: Upload coverage to Codecov
+        uses: codecov/codecov-action@v3
+        with:
+          file: ./mlops/coverage.xml
+          flags: unittests
+          name: codecov-umbrella
+        continue-on-error: true
 
   # Job 2: Build Docker Image
   build:
     name: Build Docker Image
     runs-on: ubuntu-latest
     needs: test
-    
+
     steps:
-    - name: Checkout code
-      uses: actions/checkout@v4
-    
-    - name: Set up Docker Buildx
-      uses: docker/setup-buildx-action@v3
-    
-    - name: Log in to Docker Hub
-      if: github.event_name != 'pull_request'
-      uses: docker/login-action@v3
-      with:
-        username: ${{ secrets.DOCKER_USERNAME }}
-        password: ${{ secrets.DOCKER_PASSWORD }}
-    
-    - name: Extract metadata
-      id: meta
-      uses: docker/metadata-action@v5
-      with:
-        images: ${{ secrets.DOCKER_USERNAME }}/${{ env.DOCKER_IMAGE }}
-        tags: |
-          type=ref,event=branch
-          type=ref,event=pr
-          type=semver,pattern={{version}}
-          type=semver,pattern={{major}}.{{minor}}
-          type=sha,prefix={{branch}}-
-    
-    - name: Build and push Docker image
-      uses: docker/build-push-action@v5
-      with:
-        context: ./mlops
-        push: ${{ github.event_name != 'pull_request' }}
-        tags: ${{ steps.meta.outputs.tags }}
-        labels: ${{ steps.meta.outputs.labels }}
-        cache-from: type=gha
-        cache-to: type=gha,mode=max
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
+
+      - name: Log in to Docker Hub
+        if: github.event_name != 'pull_request'
+        uses: docker/login-action@v3
+        with:
+          username: ${{ secrets.DOCKER_USERNAME }}
+          password: ${{ secrets.DOCKER_PASSWORD }}
+
+      - name: Extract metadata
+        id: meta
+        uses: docker/metadata-action@v5
+        with:
+          images: ${{ secrets.DOCKER_USERNAME }}/${{ env.DOCKER_IMAGE }}
+          tags: |
+            type=ref,event=branch
+            type=ref,event=pr
+            type=semver,pattern={{version}}
+            type=semver,pattern={{major}}.{{minor}}
+            type=sha,prefix={{branch}}-
+
+      - name: Build and push Docker image
+        uses: docker/build-push-action@v5
+        with:
+          context: .
+          file: ./mlops/Dockerfile
+          push: ${{ github.event_name != 'pull_request' }}
+          tags: ${{ steps.meta.outputs.tags }}
+          labels: ${{ steps.meta.outputs.labels }}
+          cache-from: type=gha
+          cache-to: type=gha,mode=max
 
   # Job 3: Security Scan
   security:
@@ -113,24 +120,24 @@ jobs:
     runs-on: ubuntu-latest
     needs: build
     if: github.event_name != 'pull_request'
-    
+
     steps:
-    - name: Checkout code
-      uses: actions/checkout@v4
-    
-    - name: Run Trivy vulnerability scanner
-      uses: aquasecurity/trivy-action@master
-      with:
-        image-ref: ${{ secrets.DOCKER_USERNAME }}/${{ env.DOCKER_IMAGE }}:${{ github.ref_name }}-${{ github.sha }}
-        format: 'sarif'
-        output: 'trivy-results.sarif'
-      continue-on-error: true
-    
-    - name: Upload Trivy results to GitHub Security
-      uses: github/codeql-action/upload-sarif@v2
-      with:
-        sarif_file: 'trivy-results.sarif'
-      continue-on-error: true
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Run Trivy vulnerability scanner
+        uses: aquasecurity/trivy-action@master
+        with:
+          image-ref: ${{ secrets.DOCKER_USERNAME }}/${{ env.DOCKER_IMAGE }}:${{ github.ref_name }}-${{ github.sha }}
+          format: "sarif"
+          output: "trivy-results.sarif"
+        continue-on-error: true
+
+      - name: Upload Trivy results to GitHub Security
+        uses: github/codeql-action/upload-sarif@v2
+        with:
+          sarif_file: "trivy-results.sarif"
+        continue-on-error: true
 
   # Job 4: Deploy to Staging (if on develop branch)
   deploy-staging:
@@ -141,21 +148,21 @@ jobs:
     environment:
       name: staging
       url: https://staging.deepsea-edna.com
-    
+
     steps:
-    - name: Checkout code
-      uses: actions/checkout@v4
-    
-    - name: Deploy to staging
-      run: |
-        echo "Deploying to staging environment..."
-        echo "Image: ${{ secrets.DOCKER_USERNAME }}/${{ env.DOCKER_IMAGE }}:develop-${{ github.sha }}"
-        # Add your deployment commands here (e.g., AWS ECS, Azure, GCP)
-    
-    - name: Run smoke tests
-      run: |
-        echo "Running smoke tests..."
-        # Add smoke test commands
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Deploy to staging
+        run: |
+          echo "Deploying to staging environment..."
+          echo "Image: ${{ secrets.DOCKER_USERNAME }}/${{ env.DOCKER_IMAGE }}:develop-${{ github.sha }}"
+          # Add your deployment commands here (e.g., AWS ECS, Azure, GCP)
+
+      - name: Run smoke tests
+        run: |
+          echo "Running smoke tests..."
+          # Add smoke test commands
 
   # Job 5: Deploy to Production (if on main branch)
   deploy-production:
@@ -166,23 +173,23 @@ jobs:
     environment:
       name: production
       url: https://api.deepsea-edna.com
-    
+
     steps:
-    - name: Checkout code
-      uses: actions/checkout@v4
-    
-    - name: Deploy to production
-      run: |
-        echo "Deploying to production environment..."
-        echo "Image: ${{ secrets.DOCKER_USERNAME }}/${{ env.DOCKER_IMAGE }}:main-${{ github.sha }}"
-        # Add your production deployment commands here
-    
-    - name: Run smoke tests
-      run: |
-        echo "Running production smoke tests..."
-        # Add smoke test commands
-    
-    - name: Notify deployment
-      run: |
-        echo "Production deployment complete!"
-        echo "Version: ${{ github.sha }}"
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Deploy to production
+        run: |
+          echo "Deploying to production environment..."
+          echo "Image: ${{ secrets.DOCKER_USERNAME }}/${{ env.DOCKER_IMAGE }}:main-${{ github.sha }}"
+          # Add your production deployment commands here
+
+      - name: Run smoke tests
+        run: |
+          echo "Running production smoke tests..."
+          # Add smoke test commands
+
+      - name: Notify deployment
+        run: |
+          echo "Production deployment complete!"
+          echo "Version: ${{ github.sha }}"

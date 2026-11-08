@@ -18,8 +18,11 @@ if (!(Test-Path $modelPath)) {
     exit 1
 }
 
-# Build image
-docker build -t "${imageName}:${imageTag}" -t "${imageName}:latest" .
+# Build from project root directory (to access backend/)
+Write-Host "Building from project root with mlops/Dockerfile..." -ForegroundColor Cyan
+Set-Location ..
+docker build -f mlops\Dockerfile -t "${imageName}:${imageTag}" -t "${imageName}:latest" .
+Set-Location mlops
 
 if ($LASTEXITCODE -eq 0) {
     Write-Host ""
