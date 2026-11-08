@@ -20,6 +20,7 @@ COPY mlops/database.py .
 COPY mlops/crud.py .
 COPY mlops/file_processor.py .
 COPY mlops/auth.py .
+COPY mlops/quality_control.py .
 COPY mlops/models/ ./models/
 
 # Copy backend modules (needed for model loading)

@@ -953,3 +953,290 @@ if __name__ == "__main__":
         # (already tracked by get_api_key dependency)
         
         return result
+
+    # ========================================
+    # QUALITY CONTROL ENDPOINTS - Feature #4
+    # ========================================
+    
+    from quality_control import (
+        QualityController, QualityLevel, ConfidenceThresholds,
+        AlertManager
+    )
+    
+    # Initialize alert manager
+    alert_manager = AlertManager()
+    
+    class DetailedPredictionOutput(BaseModel):
+        """Detailed prediction with quality assessment"""
+        # Main prediction
+        class_id: int
+        class_name: str
+        common_name: str
+        confidence: float
+        model_version: str
+        
+        # Quality assessment
+        quality_level: str
+        quality_message: str
+        recommendation: str
+        warnings: List[str]
+        
+        # Alternative predictions
+        alternative_predictions: List[Dict]
+        
+        # Sequence analysis
+        sequence_quality: Dict
+        
+        # Flags
+        alert_triggered: bool
+        is_ambiguous: bool
+    
+    @app.post("/predict/detailed", response_model=DetailedPredictionOutput)
+    def predict_with_quality_check(
+        data: SequenceInput,
+        request: Request,
+        db: Session = Depends(get_db)
+    ):
+        """
+        Predict with comprehensive quality analysis
+        
+        Returns prediction with:
+        - Quality level assessment (high/medium/low/critical)
+        - Alternative predictions (top 3)
+        - Confidence warnings
+        - Sequence quality analysis
+        - Ambiguity detection
+        - Actionable recommendations
+        
+        - **sequence**: DNA sequence (50-1500 bp)
+        """
+        start_time = time.time()
+        
+        try:
+            # Validate sequence
+            sequence = data.sequence.upper()
+            valid_bases = set("ACGTN")
+            if not all(base in valid_bases for base in sequence):
+                raise HTTPException(
+                    status_code=400,
+                    detail="Invalid DNA sequence. Only A, C, G, T, N characters allowed."
+                )
+            
+            # Convert sequence to tensor
+            seq_tensor = sequence_to_tensor(sequence, max_length=1000)
+            seq_tensor = seq_tensor.unsqueeze(0).to(request.app.state.device)
+            
+            # Make prediction
+            model = request.app.state.model
+            model.eval()
+            
+            with torch.no_grad():
+                logits, model_confidence = model(seq_tensor)
+                prediction = int(torch.argmax(logits, dim=1)[0])
+                conf_value = float(model_confidence[0])
+            
+            # Get top 3 predictions
+            taxonomy_map = request.app.state.taxonomy_map
+            top_predictions = QualityController.get_top_predictions(
+                logits, taxonomy_map, top_k=3
+            )
+            
+            # Generate quality report
+            quality_report = QualityController.generate_quality_report(
+                sequence=sequence,
+                prediction=top_predictions[0],
+                top_predictions=top_predictions,
+                confidence=conf_value
+            )
+            
+            # Get main prediction info
+            class_info = taxonomy_map.get(str(prediction), {
+                "name": f"Class_{prediction}",
+                "common_name": "Unknown"
+            })
+            
+            # Calculate processing time
+            processing_time_ms = (time.time() - start_time) * 1000
+            
+            # Save to database with quality info
+            try:
+                client_ip = request.client.host if request.client else None
+                user_agent = request.headers.get("user-agent", "")
+                
+                create_prediction(
+                    db=db,
+                    sequence=sequence,
+                    class_id=prediction,
+                    class_name=class_info["name"],
+                    common_name=class_info["common_name"],
+                    confidence=conf_value,
+                    model_version=request.app.state.model_version,
+                    device=request.app.state.device,
+                    processing_time_ms=processing_time_ms,
+                    request_ip=client_ip,
+                    user_agent=user_agent,
+                    metadata={
+                        "quality_level": quality_report["quality_level"],
+                        "alert_triggered": quality_report["alert_triggered"],
+                        "warnings": quality_report["warnings"]
+                    }
+                )
+            except Exception as db_error:
+                print(f"⚠️  Failed to save prediction: {db_error}")
+            
+            return DetailedPredictionOutput(
+                class_id=prediction,
+                class_name=class_info["name"],
+                common_name=class_info["common_name"],
+                confidence=conf_value,
+                model_version=request.app.state.model_version,
+                quality_level=quality_report["quality_level"],
+                quality_message=quality_report["quality_message"],
+                recommendation=quality_report["recommendation"],
+                warnings=quality_report["warnings"],
+                alternative_predictions=quality_report["alternative_predictions"],
+                sequence_quality=quality_report["sequence_quality"],
+                alert_triggered=quality_report["alert_triggered"],
+                is_ambiguous=quality_report["is_ambiguous"]
+            )
+            
+        except HTTPException:
+            raise
+        except Exception as e:
+            raise HTTPException(status_code=500, detail=f"Prediction failed: {str(e)}")
+    
+    @app.get("/quality/thresholds")
+    def get_quality_thresholds():
+        """
+        Get current quality thresholds
+        """
+        return {
+            "thresholds": {
+                "high": ConfidenceThresholds.HIGH,
+                "medium": ConfidenceThresholds.MEDIUM,
+                "low": ConfidenceThresholds.LOW,
+                "critical": ConfidenceThresholds.CRITICAL
+            },
+            "descriptions": {
+                "high": f"≥{ConfidenceThresholds.HIGH*100}% - High confidence, reliable prediction",
+                "medium": f"{ConfidenceThresholds.MEDIUM*100}-{ConfidenceThresholds.HIGH*100}% - Medium confidence, acceptable",
+                "low": f"{ConfidenceThresholds.LOW*100}-{ConfidenceThresholds.MEDIUM*100}% - Low confidence, review suggested",
+                "critical": f"<{ConfidenceThresholds.CRITICAL*100}% - Critical, manual review required"
+            }
+        }
+    
+    @app.get("/quality/stats")
+    def get_quality_statistics(
+        days: int = 7,
+        db: Session = Depends(get_db)
+    ):
+        """
+        Get quality statistics for predictions
+        
+        - **days**: Number of days to analyze (default: 7)
+        """
+        try:
+            from datetime import timedelta
+            from sqlalchemy import func
+            
+            since = datetime.utcnow() - timedelta(days=days)
+            
+            # Get all predictions
+            predictions = db.query(Prediction).filter(
+                Prediction.created_at >= since
+            ).all()
+            
+            if not predictions:
+                return {
+                    "period_days": days,
+                    "total_predictions": 0,
+                    "message": "No predictions found in this period"
+                }
+            
+            # Analyze quality levels
+            quality_counts = {
+                "high": 0,
+                "medium": 0,
+                "low": 0,
+                "critical": 0
+            }
+            
+            alerts_triggered = 0
+            
+            for pred in predictions:
+                quality = QualityController.assess_confidence(pred.confidence)
+                quality_counts[quality] += 1
+                
+                if QualityController.should_alert(pred.confidence):
+                    alerts_triggered += 1
+            
+            total = len(predictions)
+            
+            return {
+                "period_days": days,
+                "total_predictions": total,
+                "quality_distribution": {
+                    "high": {
+                        "count": quality_counts["high"],
+                        "percentage": round(quality_counts["high"] / total * 100, 1)
+                    },
+                    "medium": {
+                        "count": quality_counts["medium"],
+                        "percentage": round(quality_counts["medium"] / total * 100, 1)
+                    },
+                    "low": {
+                        "count": quality_counts["low"],
+                        "percentage": round(quality_counts["low"] / total * 100, 1)
+                    },
+                    "critical": {
+                        "count": quality_counts["critical"],
+                        "percentage": round(quality_counts["critical"] / total * 100, 1)
+                    }
+                },
+                "alerts_triggered": alerts_triggered,
+                "alert_rate": round(alerts_triggered / total * 100, 1),
+                "average_confidence": round(sum(p.confidence for p in predictions) / total, 4)
+            }
+            
+        except Exception as e:
+            raise HTTPException(status_code=500, detail=f"Failed to get statistics: {str(e)}")
+    
+    @app.get("/quality/low-confidence")
+    def get_low_confidence_predictions(
+        limit: int = 50,
+        min_confidence: float = 0.0,
+        max_confidence: float = ConfidenceThresholds.LOW,
+        db: Session = Depends(get_db)
+    ):
+        """
+        Get predictions that need review (low confidence)
+        
+        - **limit**: Maximum number of results (default: 50)
+        - **min_confidence**: Minimum confidence threshold
+        - **max_confidence**: Maximum confidence threshold (default: 0.50)
+        """
+        try:
+            predictions = db.query(Prediction).filter(
+                Prediction.confidence >= min_confidence,
+                Prediction.confidence <= max_confidence
+            ).order_by(Prediction.confidence.asc()).limit(limit).all()
+            
+            return {
+                "total": len(predictions),
+                "threshold": max_confidence,
+                "predictions": [
+                    {
+                        "id": p.id,
+                        "class_name": p.class_name,
+                        "confidence": p.confidence,
+                        "quality_level": QualityController.assess_confidence(p.confidence),
+                        "sequence_length": len(p.sequence),
+                        "created_at": p.created_at.isoformat(),
+                        "metadata": p.metadata
+                    }
+                    for p in predictions
+                ]
+            }
+            
+        except Exception as e:
+            raise HTTPException(status_code=500, detail=f"Failed to fetch predictions: {str(e)}")
