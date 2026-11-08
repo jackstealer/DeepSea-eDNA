@@ -1,0 +1,18 @@
+{
+  "versions": {
+    "marine_model_v1.0_20261108_191345": {
+      "version_id": "marine_model_v1.0_20261108_191345",
+      "version_name": "marine_model_v1.0",
+      "model_path": "C:\\Users\\ATUL\\Desktop\\DeepSea-eDNA-AI-main\\ml_models\\marine_model\\marine_model.h5",
+      "created_at": "2026-11-08T19:13:45.118012",
+      "description": "Initial production model trained on 8 marine taxa classes with 94.18% accuracy",
+      "metrics": {},
+      "training_info": {},
+      "status": "active",
+      "is_current": true,
+      "checksum": "unknown",
+      "tags": []
+    }
+  },
+  "last_updated": "2026-11-08T19:13:45.119839"
+}
