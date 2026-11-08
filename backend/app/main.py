@@ -13,6 +13,7 @@ from app.services.model_loader import ModelLoader
 from mlops.cache_manager import CacheManager
 from mlops.monitoring import MonitoringManager
 from mlops.model_versioning import ModelVersionRegistry
+from mlops.ab_testing import ABTestManager
 
 # Setup logging
 setup_logging()
@@ -23,11 +24,12 @@ model_loader = None
 cache_manager = None
 monitoring_manager = None
 version_registry = None
+ab_test_manager = None
 
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
-    global model_loader, cache_manager, monitoring_manager, version_registry
+    global model_loader, cache_manager, monitoring_manager, version_registry, ab_test_manager
     logger.info("Starting eDNA Analysis API...")
     logger.info(f"Environment: {settings.ENVIRONMENT}")
     logger.info(f"Model Device: {settings.MODEL_DEVICE}")
@@ -41,6 +43,11 @@ async def lifespan(app: FastAPI):
     version_registry = ModelVersionRegistry()
     app.state.version_registry = version_registry
     logger.info(f"Version registry initialized: {len(version_registry.versions)} versions")
+    
+    # Initialize A/B test manager
+    ab_test_manager = ABTestManager()
+    app.state.ab_test_manager = ab_test_manager
+    logger.info(f"A/B test manager initialized: {len(ab_test_manager.experiments)} experiments")
     
     # Initialize model loader
     model_loader = ModelLoader()
@@ -433,6 +440,201 @@ async def deprecate_version(
         "message": f"Version {version_id} deprecated",
         "version_id": version_id,
         "reason": reason
+    }
+
+
+# ==================== Feature #8: A/B Testing ====================
+
+@app.post("/experiments/create")
+async def create_experiment(
+    request: Request,
+    experiment_name: str,
+    description: str,
+    variant_configs: List[Dict[str, Any]],
+    strategy: str = "random",
+    duration_days: Optional[int] = None
+):
+    """
+    Create a new A/B test experiment
+    
+    Example variant_configs:
+    [
+        {"name": "control", "version_id": "v2.0-baseline", "traffic": 50},
+        {"name": "treatment", "version_id": "v2.1", "traffic": 50}
+    ]
+    """
+    ab_manager = request.app.state.ab_test_manager
+    if not ab_manager:
+        raise HTTPException(status_code=503, detail="A/B test manager not initialized")
+    
+    try:
+        experiment = ab_manager.create_experiment(
+            experiment_name=experiment_name,
+            description=description,
+            variant_configs=variant_configs,
+            strategy=strategy,
+            duration_days=duration_days
+        )
+        
+        return {
+            "status": "success",
+            "message": "Experiment created successfully",
+            "experiment_id": experiment.experiment_id,
+            "experiment_name": experiment.experiment_name,
+            "variants": len(experiment.variants)
+        }
+    except ValueError as e:
+        raise HTTPException(status_code=400, detail=str(e))
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
+
+
+@app.post("/experiments/{experiment_id}/start")
+async def start_experiment(experiment_id: str, request: Request):
+    """Start an A/B test experiment"""
+    ab_manager = request.app.state.ab_test_manager
+    if not ab_manager:
+        raise HTTPException(status_code=503, detail="A/B test manager not initialized")
+    
+    success = ab_manager.start_experiment(experiment_id)
+    if not success:
+        raise HTTPException(
+            status_code=400,
+            detail="Cannot start experiment (not found or another experiment is active)"
+        )
+    
+    return {
+        "status": "success",
+        "message": f"Experiment {experiment_id} started",
+        "experiment_id": experiment_id
+    }
+
+
+@app.post("/experiments/{experiment_id}/stop")
+async def stop_experiment(
+    experiment_id: str,
+    request: Request,
+    declare_winner: bool = True
+):
+    """Stop an A/B test experiment"""
+    ab_manager = request.app.state.ab_test_manager
+    if not ab_manager:
+        raise HTTPException(status_code=503, detail="A/B test manager not initialized")
+    
+    success = ab_manager.stop_experiment(experiment_id, declare_winner=declare_winner)
+    if not success:
+        raise HTTPException(status_code=404, detail="Experiment not found")
+    
+    # Get results
+    results = ab_manager.get_experiment_results(experiment_id)
+    
+    return {
+        "status": "success",
+        "message": f"Experiment {experiment_id} stopped",
+        "experiment_id": experiment_id,
+        "winner": results.get("winner"),
+        "results": results
+    }
+
+
+@app.post("/experiments/{experiment_id}/pause")
+async def pause_experiment(experiment_id: str, request: Request):
+    """Pause an A/B test experiment"""
+    ab_manager = request.app.state.ab_test_manager
+    if not ab_manager:
+        raise HTTPException(status_code=503, detail="A/B test manager not initialized")
+    
+    success = ab_manager.pause_experiment(experiment_id)
+    if not success:
+        raise HTTPException(status_code=404, detail="Experiment not found")
+    
+    return {
+        "status": "success",
+        "message": f"Experiment {experiment_id} paused",
+        "experiment_id": experiment_id
+    }
+
+
+@app.post("/experiments/{experiment_id}/resume")
+async def resume_experiment(experiment_id: str, request: Request):
+    """Resume a paused A/B test experiment"""
+    ab_manager = request.app.state.ab_test_manager
+    if not ab_manager:
+        raise HTTPException(status_code=503, detail="A/B test manager not initialized")
+    
+    success = ab_manager.resume_experiment(experiment_id)
+    if not success:
+        raise HTTPException(
+            status_code=400,
+            detail="Cannot resume experiment (not found or not paused)"
+        )
+    
+    return {
+        "status": "success",
+        "message": f"Experiment {experiment_id} resumed",
+        "experiment_id": experiment_id
+    }
+
+
+@app.get("/experiments")
+async def list_experiments(request: Request, status: Optional[str] = None):
+    """List all A/B test experiments"""
+    ab_manager = request.app.state.ab_test_manager
+    if not ab_manager:
+        raise HTTPException(status_code=503, detail="A/B test manager not initialized")
+    
+    experiments = ab_manager.list_experiments(status=status)
+    
+    return {
+        "total": len(experiments),
+        "experiments": experiments
+    }
+
+
+@app.get("/experiments/{experiment_id}/results")
+async def get_experiment_results(experiment_id: str, request: Request):
+    """Get detailed results for an A/B test experiment"""
+    ab_manager = request.app.state.ab_test_manager
+    if not ab_manager:
+        raise HTTPException(status_code=503, detail="A/B test manager not initialized")
+    
+    try:
+        results = ab_manager.get_experiment_results(experiment_id)
+        return results
+    except ValueError as e:
+        raise HTTPException(status_code=404, detail=str(e))
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
+
+
+@app.get("/experiments/active")
+async def get_active_experiment(request: Request):
+    """Get currently active experiment"""
+    ab_manager = request.app.state.ab_test_manager
+    if not ab_manager:
+        raise HTTPException(status_code=503, detail="A/B test manager not initialized")
+    
+    experiment = ab_manager.get_active_experiment()
+    if not experiment:
+        return {"active": False, "experiment": None}
+    
+    return {
+        "active": True,
+        "experiment": {
+            "experiment_id": experiment.experiment_id,
+            "experiment_name": experiment.experiment_name,
+            "status": experiment.status,
+            "variants": [
+                {
+                    "variant_id": v.variant_id,
+                    "variant_name": v.variant_name,
+                    "version_id": v.version_id,
+                    "traffic_percentage": v.traffic_percentage,
+                    "prediction_count": v.prediction_count
+                }
+                for v in experiment.variants
+            ]
+        }
     }
 
 
