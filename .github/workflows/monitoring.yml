@@ -3,7 +3,7 @@ name: System Monitoring
 on:
   schedule:
     # Run every 6 hours
-    - cron: '0 */6 * * *'
+    - cron: "0 */6 * * *"
   workflow_dispatch:
 
 jobs:
@@ -11,7 +11,7 @@ jobs:
     name: Production Health Check
     runs-on: ubuntu-latest
     if: github.ref == 'refs/heads/main'
-    
+
     steps:
       - name: Check API health
         run: |
@@ -20,9 +20,9 @@ jobs:
             echo "::warning::Production API URL not configured"
             exit 0
           fi
-          
+
           RESPONSE=$(curl -s -o /dev/null -w "%{http_code}" "$API_URL/health" || echo "000")
-          
+
           if [ "$RESPONSE" = "200" ]; then
             echo "✅ API health check passed (HTTP $RESPONSE)"
           else
@@ -36,7 +36,7 @@ jobs:
           if [ -z "$API_URL" ]; then
             exit 0
           fi
-          
+
           RESPONSE=$(curl -s "$API_URL/api/models" || echo "{}")
           echo "Models response: $RESPONSE"
 
@@ -46,7 +46,7 @@ jobs:
           if [ -z "$API_URL" ]; then
             exit 0
           fi
-          
+
           curl -X POST "$API_URL/api/predict" \
             -H "Content-Type: application/json" \
             -d '{"sequence":"ATCGATCGATCG"}' || echo "::warning::Prediction test failed"
@@ -55,7 +55,7 @@ jobs:
     name: Performance Monitoring
     runs-on: ubuntu-latest
     if: github.ref == 'refs/heads/main'
-    
+
     steps:
       - name: Measure response time
         run: |
@@ -64,14 +64,14 @@ jobs:
             echo "::warning::Production API URL not configured"
             exit 0
           fi
-          
+
           START_TIME=$(date +%s%3N)
           curl -s "$API_URL/health" > /dev/null
           END_TIME=$(date +%s%3N)
-          
+
           RESPONSE_TIME=$((END_TIME - START_TIME))
           echo "Response time: ${RESPONSE_TIME}ms"
-          
+
           if [ $RESPONSE_TIME -gt 5000 ]; then
             echo "::warning::Response time is slow: ${RESPONSE_TIME}ms"
           fi
@@ -82,7 +82,7 @@ jobs:
           if [ -z "$API_URL" ]; then
             exit 0
           fi
-          
+
           CACHE_STATS=$(curl -s "$API_URL/cache/stats" || echo "{}")
           echo "Cache statistics: $CACHE_STATS"
 
@@ -90,7 +90,7 @@ jobs:
     name: Database Health Check
     runs-on: ubuntu-latest
     if: github.ref == 'refs/heads/main'
-    
+
     steps:
       - name: Check database connectivity
         run: |
@@ -110,7 +110,7 @@ jobs:
     needs: [health-check, performance-check]
     runs-on: ubuntu-latest
     if: always() && github.ref == 'refs/heads/main'
-    
+
     steps:
       - name: Generate report
         run: |
@@ -131,7 +131,7 @@ jobs:
           fi
 
       - name: Upload monitoring report
-        uses: actions/upload-artifact@v3
+        uses: actions/upload-artifact@v4
         with:
           name: monitoring-report-${{ github.run_number }}
           path: monitoring-report.md

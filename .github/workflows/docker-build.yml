@@ -4,7 +4,7 @@ on:
   push:
     branches: [main, develop]
     tags:
-      - 'v*.*.*'
+      - "v*.*.*"
   pull_request:
     branches: [main]
   workflow_dispatch:
@@ -79,15 +79,15 @@ jobs:
         uses: aquasecurity/trivy-action@master
         with:
           image-ref: ${{ secrets.DOCKER_USERNAME }}/${{ env.IMAGE_NAME }}:${{ github.ref_name }}-${{ github.sha }}
-          format: 'sarif'
-          output: 'trivy-image-results.sarif'
+          format: "sarif"
+          output: "trivy-image-results.sarif"
         continue-on-error: true
 
       - name: Upload Trivy results to GitHub Security
         if: github.event_name != 'pull_request'
         uses: github/codeql-action/upload-sarif@v2
         with:
-          sarif_file: 'trivy-image-results.sarif'
+          sarif_file: "trivy-image-results.sarif"
         continue-on-error: true
 
       - name: Test Docker image
@@ -96,23 +96,23 @@ jobs:
           # Get the first tag
           TAG=$(echo "${{ steps.meta.outputs.tags }}" | head -n1)
           echo "Testing image: $TAG"
-          
+
           # Run container in background
           docker run -d --name test-container -p 8000:8000 \
             -e DATABASE_URL=sqlite:///./test.db \
             -e REDIS_URL=redis://localhost:6379 \
             $TAG
-          
+
           # Wait for container to start
           sleep 10
-          
+
           # Test health endpoint
           curl -f http://localhost:8000/health || exit 1
-          
+
           # Stop container
           docker stop test-container
           docker rm test-container
-          
+
           echo "✅ Docker image test passed!"
 
       - name: Generate build report
@@ -129,7 +129,7 @@ jobs:
 
       - name: Upload build report
         if: github.event_name != 'pull_request'
-        uses: actions/upload-artifact@v3
+        uses: actions/upload-artifact@v4
         with:
           name: docker-build-report
           path: docker-report.md

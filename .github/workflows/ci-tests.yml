@@ -11,7 +11,7 @@ jobs:
   test-backend:
     name: Test Backend API
     runs-on: ubuntu-latest
-    
+
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
@@ -20,7 +20,7 @@ jobs:
         uses: actions/setup-python@v4
         with:
           python-version: "3.11"
-          cache: 'pip'
+          cache: "pip"
 
       - name: Install system dependencies
         run: |
@@ -63,7 +63,7 @@ jobs:
         continue-on-error: true
 
       - name: Archive coverage reports
-        uses: actions/upload-artifact@v3
+        uses: actions/upload-artifact@v4
         with:
           name: coverage-report
           path: backend/htmlcov/
@@ -71,7 +71,7 @@ jobs:
   test-mlops:
     name: Test MLOps Features
     runs-on: ubuntu-latest
-    
+
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
@@ -80,7 +80,7 @@ jobs:
         uses: actions/setup-python@v4
         with:
           python-version: "3.11"
-          cache: 'pip'
+          cache: "pip"
 
       - name: Install dependencies
         run: |
@@ -106,25 +106,25 @@ jobs:
           import sys
           from mlops.cache_manager import CacheManager
           from mlops.monitoring import MonitoringManager
-          
+
           # Test CacheManager
           cache = CacheManager()
           assert cache.backend in ['redis', 'in-memory'], 'Cache backend check failed'
           print('✅ CacheManager tests passed')
-          
+
           # Test MonitoringManager
           monitor = MonitoringManager()
           metrics = monitor.get_system_metrics()
           assert 'cpu' in metrics, 'System metrics check failed'
           print('✅ MonitoringManager tests passed')
-          
+
           print('✅ All MLOps feature tests passed!')
           "
 
   security-scan:
     name: Security Scan
     runs-on: ubuntu-latest
-    
+
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
@@ -132,16 +132,16 @@ jobs:
       - name: Run Trivy vulnerability scanner (filesystem)
         uses: aquasecurity/trivy-action@master
         with:
-          scan-type: 'fs'
-          scan-ref: '.'
-          format: 'sarif'
-          output: 'trivy-results.sarif'
+          scan-type: "fs"
+          scan-ref: "."
+          format: "sarif"
+          output: "trivy-results.sarif"
         continue-on-error: true
 
       - name: Upload Trivy results to GitHub Security
         uses: github/codeql-action/upload-sarif@v2
         with:
-          sarif_file: 'trivy-results.sarif'
+          sarif_file: "trivy-results.sarif"
         continue-on-error: true
 
       - name: Run Bandit security linter
@@ -151,7 +151,7 @@ jobs:
         continue-on-error: true
 
       - name: Upload Bandit results
-        uses: actions/upload-artifact@v3
+        uses: actions/upload-artifact@v4
         with:
           name: bandit-security-report
           path: bandit-report.json
@@ -160,7 +160,7 @@ jobs:
   code-quality:
     name: Code Quality Check
     runs-on: ubuntu-latest
-    
+
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
@@ -203,7 +203,7 @@ jobs:
           radon mi backend/app >> quality-report.md || true
 
       - name: Upload quality report
-        uses: actions/upload-artifact@v3
+        uses: actions/upload-artifact@v4
         with:
           name: code-quality-report
           path: quality-report.md

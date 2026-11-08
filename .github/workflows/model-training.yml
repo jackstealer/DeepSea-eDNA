@@ -4,21 +4,21 @@ on:
   workflow_dispatch:
     inputs:
       dataset:
-        description: 'Training dataset to use'
+        description: "Training dataset to use"
         required: true
-        default: 'marine_diverse'
+        default: "marine_diverse"
         type: choice
         options:
           - marine_diverse
           - custom
       epochs:
-        description: 'Number of training epochs'
+        description: "Number of training epochs"
         required: true
-        default: '50'
+        default: "50"
       learning_rate:
-        description: 'Learning rate'
+        description: "Learning rate"
         required: false
-        default: '0.001'
+        default: "0.001"
 
 jobs:
   train-model:
@@ -26,7 +26,7 @@ jobs:
     runs-on: ubuntu-latest
     # Uncomment if you have GPU runners
     # runs-on: [self-hosted, gpu]
-    
+
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
@@ -75,7 +75,7 @@ jobs:
           ls -lh ml_models/marine_model/
 
       - name: Upload model artifacts
-        uses: actions/upload-artifact@v3
+        uses: actions/upload-artifact@v4
         with:
           name: trained-model-${{ github.run_number }}
           path: |
@@ -105,7 +105,7 @@ jobs:
           cat ml_models/marine_model/training_history.json || echo "No history file" >> training-report.md
 
       - name: Upload training report
-        uses: actions/upload-artifact@v3
+        uses: actions/upload-artifact@v4
         with:
           name: training-report
           path: training-report.md
@@ -114,7 +114,7 @@ jobs:
     name: Validate Trained Model
     needs: train-model
     runs-on: ubuntu-latest
-    
+
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
@@ -130,7 +130,7 @@ jobs:
           pip install -r requirements.txt
 
       - name: Download trained model
-        uses: actions/download-artifact@v3
+        uses: actions/download-artifact@v4
         with:
           name: trained-model-${{ github.run_number }}
           path: ml_models/marine_model/
@@ -154,14 +154,14 @@ jobs:
           sys.path.insert(0, 'backend')
           from app.models.deep_learning import DeepTaxaClassifier
           import torch
-          
+
           # Load model
           checkpoint = torch.load('ml_models/marine_model/best_model.pth', map_location='cpu')
-          
+
           # Create model instance
           model = DeepTaxaClassifier(num_classes=8, embedding_dim=128, hidden_dim=256)
           model.load_state_dict(checkpoint['model_state_dict'])
           model.eval()
-          
+
           print('✅ Model inference test passed')
           "

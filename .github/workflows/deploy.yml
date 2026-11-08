@@ -3,13 +3,13 @@ name: Deploy to Production
 on:
   push:
     tags:
-      - 'v*.*.*'
+      - "v*.*.*"
   workflow_dispatch:
     inputs:
       environment:
-        description: 'Deployment environment'
+        description: "Deployment environment"
         required: true
-        default: 'staging'
+        default: "staging"
         type: choice
         options:
           - staging
@@ -21,7 +21,7 @@ jobs:
     runs-on: ubuntu-latest
     environment:
       name: ${{ inputs.environment || 'production' }}
-    
+
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
@@ -38,7 +38,7 @@ jobs:
           echo "Deploying version: $VERSION"
 
       - name: Configure AWS credentials (if using AWS)
-        if: false  # Enable if using AWS
+        if: false # Enable if using AWS
         uses: aws-actions/configure-aws-credentials@v4
         with:
           aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
@@ -49,7 +49,7 @@ jobs:
         run: |
           echo "Deploying to ${{ inputs.environment || 'production' }}"
           echo "Version: ${{ steps.version.outputs.version }}"
-          
+
           # Add your deployment commands here
           # Examples:
           # - Deploy to AWS ECS/EKS
@@ -57,7 +57,7 @@ jobs:
           # - Deploy to GCP Cloud Run
           # - SSH to server and update containers
           # - Use Kubernetes deployment
-          
+
           # Example Docker deployment:
           # docker pull ${{ secrets.DOCKER_USERNAME }}/deepsea-edna-api:${{ steps.version.outputs.version }}
           # docker-compose up -d
@@ -91,7 +91,7 @@ jobs:
     name: Post-Deployment Tests
     needs: deploy
     runs-on: ubuntu-latest
-    
+
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
@@ -129,7 +129,7 @@ jobs:
           echo "- **Commit**: ${{ github.sha }}" >> deployment-report.md
 
       - name: Upload deployment report
-        uses: actions/upload-artifact@v3
+        uses: actions/upload-artifact@v4
         with:
           name: deployment-report
           path: deployment-report.md
