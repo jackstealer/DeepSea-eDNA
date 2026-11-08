@@ -3,7 +3,10 @@
 [![Python](https://img.shields.io/badge/Python-3.11-blue.svg)](https://www.python.org/)
 [![FastAPI](https://img.shields.io/badge/FastAPI-0.136+-green.svg)](https://fastapi.tiangolo.com/)
 [![PyTorch](https://img.shields.io/badge/PyTorch-2.0+-red.svg)](https://pytorch.org/)
+[![Docker](https://img.shields.io/badge/Docker-Available-blue.svg)](https://github.com/jackstealer/DeepSea-eDNA/pkgs/container/deepsea-edna)
 [![License](https://img.shields.io/badge/License-MIT-yellow.svg)](LICENSE)
+
+> **🐳 Docker Package Available:** `docker pull ghcr.io/jackstealer/deepsea-edna:latest`
 
 **Production-ready MLOps platform for marine taxonomic classification using deep learning on environmental DNA sequences.**
 
@@ -82,7 +85,25 @@ pip install -r backend/requirements.txt
 uvicorn app.main:app --reload
 ```
 
-### Docker Deployment
+### Docker Deployment (Recommended)
+
+#### Option 1: Pull from GitHub Container Registry (Easiest)
+
+```bash
+# Pull the latest image
+docker pull ghcr.io/jackstealer/deepsea-edna:latest
+
+# Run container
+docker run -d \
+  --name deepsea-edna \
+  -p 8000:8000 \
+  -e SECRET_KEY=your-secret-key \
+  ghcr.io/jackstealer/deepsea-edna:latest
+
+# Access API at http://localhost:8000
+```
+
+#### Option 2: Build from Source
 
 ```bash
 # Build image
@@ -91,6 +112,8 @@ docker build -t deepsea-edna-api .
 # Run container
 docker run -d -p 8000:8000 deepsea-edna-api
 ```
+
+📖 **Full Docker documentation:** [DOCKER_PACKAGE.md](DOCKER_PACKAGE.md)
 
 ### First Steps
 
