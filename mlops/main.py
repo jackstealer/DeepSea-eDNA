@@ -4,6 +4,8 @@ Production-ready API with MLflow integration
 """
 import os
 import sys
+import io
+import csv
 from pathlib import Path
 from typing import List, Callable
 from contextlib import asynccontextmanager
@@ -488,3 +490,256 @@ if __name__ == "__main__":
             raise
         except Exception as e:
             raise HTTPException(status_code=500, detail=f"Failed to delete prediction: {str(e)}")
+
+    # ========================================
+    # FILE UPLOAD ENDPOINTS - Feature #2
+    # ========================================
+    
+    from fastapi import File, UploadFile, BackgroundTasks
+    from file_processor import FileProcessor
+    import uuid
+    from datetime import datetime
+    
+    @app.post("/upload/fasta")
+    async def upload_fasta(
+        file: UploadFile = File(...),
+        background_tasks: BackgroundTasks = None,
+        db: Session = Depends(get_db),
+        request: Request = None
+    ):
+        """
+        Upload FASTA file for batch prediction
+        
+        - **file**: FASTA file (.fasta, .fa, .fna)
+        - Returns: Job ID for tracking progress
+        """
+        try:
+            # Validate file
+            file_size = 0
+            content_bytes = await file.read()
+            file_size = len(content_bytes)
+            
+            is_valid, error_msg = FileProcessor.validate_file(file.filename, file_size)
+            if not is_valid:
+                raise HTTPException(status_code=400, detail=error_msg)
+            
+            # Parse file
+            content = content_bytes.decode('utf-8')
+            sequences = FileProcessor.parse_file(file.filename, content)
+            
+            if not sequences:
+                raise HTTPException(status_code=400, detail="No valid sequences found in file")
+            
+            # Filter valid sequences
+            valid_seqs, invalid_seqs = FileProcessor.filter_sequences(sequences)
+            
+            if not valid_seqs:
+                raise HTTPException(
+                    status_code=400,
+                    detail=f"No valid sequences found. {len(invalid_seqs)} sequences rejected."
+                )
+            
+            # Create batch job
+            job_id = f"job_{uuid.uuid4().hex[:12]}"
+            
+            from crud import create_batch_job
+            batch_job = create_batch_job(
+                db=db,
+                job_id=job_id,
+                total_sequences=len(valid_seqs),
+                filename=file.filename,
+                metadata={
+                    "format": Path(file.filename).suffix,
+                    "file_size": file_size,
+                    "invalid_sequences": len(invalid_seqs)
+                }
+            )
+            
+            # Process sequences
+            results = []
+            processed = 0
+            
+            for seq_data in valid_seqs:
+                try:
+                    # Make prediction
+                    seq_input = SequenceInput(sequence=seq_data["sequence"])
+                    result = predict(seq_input, request, db)
+                    
+                    results.append({
+                        "id": seq_data["id"],
+                        "sequence": seq_data["sequence"],
+                        "class_id": result.class_id,
+                        "class_name": result.class_name,
+                        "common_name": result.common_name,
+                        "confidence": result.confidence,
+                        "model_version": result.model_version
+                    })
+                    
+                    processed += 1
+                    
+                except Exception as e:
+                    results.append({
+                        "id": seq_data["id"],
+                        "sequence": seq_data["sequence"],
+                        "error": str(e)
+                    })
+            
+            # Update batch job
+            from crud import update_batch_job
+            
+            # Calculate summary
+            successful = [r for r in results if "error" not in r]
+            failed = [r for r in results if "error" in r]
+            
+            # Count predictions by class
+            class_counts = {}
+            for r in successful:
+                class_name = r.get("class_name", "Unknown")
+                class_counts[class_name] = class_counts.get(class_name, 0) + 1
+            
+            results_summary = {
+                "total_sequences": len(valid_seqs),
+                "successful": len(successful),
+                "failed": len(failed),
+                "invalid_sequences": len(invalid_seqs),
+                "predictions_by_class": class_counts,
+                "avg_confidence": sum(r["confidence"] for r in successful) / len(successful) if successful else 0
+            }
+            
+            update_batch_job(
+                db=db,
+                job_id=job_id,
+                processed=processed,
+                failed=len(failed),
+                status="completed",
+                results_summary=results_summary
+            )
+            
+            return {
+                "job_id": job_id,
+                "status": "completed",
+                "total_sequences": len(valid_seqs),
+                "processed": processed,
+                "successful": len(successful),
+                "failed": len(failed),
+                "invalid_sequences": len(invalid_seqs),
+                "results": results,
+                "summary": results_summary
+            }
+            
+        except HTTPException:
+            raise
+        except Exception as e:
+            raise HTTPException(status_code=500, detail=f"File processing failed: {str(e)}")
+    
+    @app.post("/upload/csv")
+    async def upload_csv(
+        file: UploadFile = File(...),
+        db: Session = Depends(get_db),
+        request: Request = None
+    ):
+        """
+        Upload CSV file for batch prediction
+        
+        - **file**: CSV file with 'sequence' column
+        - Returns: Prediction results
+        """
+        # Reuse FASTA upload logic (works for CSV too)
+        return await upload_fasta(file=file, db=db, request=request)
+    
+    @app.get("/batch/{job_id}")
+    def get_batch_job_status(
+        job_id: str,
+        db: Session = Depends(get_db)
+    ):
+        """
+        Get batch job status and results
+        
+        - **job_id**: Job ID returned from upload endpoint
+        """
+        try:
+            from crud import get_batch_job
+            job = get_batch_job(db, job_id)
+            
+            if not job:
+                raise HTTPException(status_code=404, detail="Job not found")
+            
+            # Calculate progress percentage
+            progress = 0
+            if job.total_sequences > 0:
+                progress = (job.processed_sequences / job.total_sequences) * 100
+            
+            return {
+                "job_id": job.job_id,
+                "status": job.status,
+                "total_sequences": job.total_sequences,
+                "processed_sequences": job.processed_sequences,
+                "failed_sequences": job.failed_sequences,
+                "progress_percentage": round(progress, 1),
+                "created_at": job.created_at.isoformat() if job.created_at else None,
+                "started_at": job.started_at.isoformat() if job.started_at else None,
+                "completed_at": job.completed_at.isoformat() if job.completed_at else None,
+                "filename": job.filename,
+                "results_summary": job.results_summary
+            }
+            
+        except HTTPException:
+            raise
+        except Exception as e:
+            raise HTTPException(status_code=500, detail=f"Failed to fetch job: {str(e)}")
+    
+    @app.get("/batch/{job_id}/download/{format}")
+    def download_batch_results(
+        job_id: str,
+        format: str,
+        db: Session = Depends(get_db)
+    ):
+        """
+        Download batch results in specified format
+        
+        - **job_id**: Job ID
+        - **format**: 'csv' or 'fasta'
+        """
+        from fastapi.responses import Response
+        from crud import get_batch_job
+        
+        try:
+            job = get_batch_job(db, job_id)
+            
+            if not job:
+                raise HTTPException(status_code=404, detail="Job not found")
+            
+            if job.status != "completed":
+                raise HTTPException(status_code=400, detail="Job not completed yet")
+            
+            # Get predictions for this job
+            # For now, return summary (in production, store results in separate table)
+            if format.lower() == "csv":
+                # Create CSV from summary
+                output = io.StringIO()
+                writer = csv.writer(output)
+                writer.writerow(["Class", "Count", "Percentage"])
+                
+                if job.results_summary and "predictions_by_class" in job.results_summary:
+                    total = job.results_summary.get("successful", 0)
+                    for class_name, count in job.results_summary["predictions_by_class"].items():
+                        percentage = (count / total * 100) if total > 0 else 0
+                        writer.writerow([class_name, count, f"{percentage:.1f}%"])
+                
+                content = output.getvalue()
+                return Response(
+                    content=content,
+                    media_type="text/csv",
+                    headers={"Content-Disposition": f"attachment; filename=results_{job_id}.csv"}
+                )
+            
+            elif format.lower() == "json":
+                return job.results_summary
+            
+            else:
+                raise HTTPException(status_code=400, detail="Format must be 'csv' or 'json'")
+                
+        except HTTPException:
+            raise
+        except Exception as e:
+            raise HTTPException(status_code=500, detail=f"Download failed: {str(e)}")
