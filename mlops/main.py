@@ -27,43 +27,60 @@ MODEL_ALIAS = "champion"
 
 def load_mlflow_model():
     """Load champion model from MLflow Model Registry"""
-    mlflow.set_tracking_uri(MLFLOW_TRACKING_URI)
+    import signal
     
+    # Try MLflow first with timeout
+    def timeout_handler(signum, frame):
+        raise TimeoutError("MLflow connection timeout")
+    
+    # Skip MLflow if URI is not accessible (fail fast)
+    mlflow_available = False
     try:
-        # Try to load from MLflow Model Registry
-        model_uri = f"models:/{MODEL_NAME}@{MODEL_ALIAS}"
-        model_artifacts = mlflow.pytorch.load_model(model_uri)
-        print(f"✅ Loaded champion model from MLflow: {model_uri}")
-        return model_artifacts
-    except Exception as e:
-        print(f"⚠️  Failed to load from MLflow: {e}")
+        import requests
+        response = requests.get(MLFLOW_TRACKING_URI.replace(':5000', ':5000/health'), timeout=2)
+        mlflow_available = response.status_code == 200
+    except:
+        print(f"⚠️  MLflow not accessible at {MLFLOW_TRACKING_URI}")
+        mlflow_available = False
+    
+    if mlflow_available:
+        mlflow.set_tracking_uri(MLFLOW_TRACKING_URI)
+        try:
+            # Try to load from MLflow Model Registry
+            model_uri = f"models:/{MODEL_NAME}@{MODEL_ALIAS}"
+            model_artifacts = mlflow.pytorch.load_model(model_uri)
+            print(f"✅ Loaded champion model from MLflow: {model_uri}")
+            return model_artifacts
+        except Exception as e:
+            print(f"⚠️  Failed to load from MLflow: {e}")
+    
+    # Fallback to local model
+    print("Loading from local model files...")
+    local_model_path = Path(__file__).parent / "models" / "best_model.pth"
+    if local_model_path.exists():
+        print(f"Loading local model from {local_model_path}")
+        checkpoint = torch.load(local_model_path, map_location="cpu")
         
-        # Fallback to local model
-        local_model_path = Path(__file__).parent / "models" / "best_model.pth"
-        if local_model_path.exists():
-            print(f"Loading local model from {local_model_path}")
-            checkpoint = torch.load(local_model_path, map_location="cpu")
-            
-            # Load model config
-            config_path = Path(__file__).parent / "models" / "model_config.json"
-            import json
-            with open(config_path, 'r') as f:
-                config = json.load(f)
-            
-            # Initialize model
-            model = DeepTaxaClassifier(
-                num_classes=config['num_classes'],
-                embedding_dim=config['embedding_dim'],
-                hidden_dim=config['hidden_dim'],
-                num_conv_layers=config['num_conv_layers'],
-                dropout=config['dropout']
-            )
-            model.load_state_dict(checkpoint['model_state_dict'])
-            model.eval()
-            print("✅ Loaded local model successfully")
-            return model
-        else:
-            raise RuntimeError("No model found - neither in MLflow nor locally")
+        # Load model config
+        config_path = Path(__file__).parent / "models" / "model_config.json"
+        import json
+        with open(config_path, 'r') as f:
+            config = json.load(f)
+        
+        # Initialize model
+        model = DeepTaxaClassifier(
+            num_classes=config['num_classes'],
+            embedding_dim=config['embedding_dim'],
+            hidden_dim=config['hidden_dim'],
+            num_conv_layers=config['num_conv_layers'],
+            dropout=config['dropout']
+        )
+        model.load_state_dict(checkpoint['model_state_dict'])
+        model.eval()
+        print("✅ Loaded local model successfully")
+        return model
+    else:
+        raise RuntimeError("No model found - neither in MLflow nor locally")
 
 
 def get_model_version():
