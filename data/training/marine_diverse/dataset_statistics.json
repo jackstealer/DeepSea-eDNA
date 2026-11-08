@@ -1,0 +1,37 @@
+{
+  "created": "2026-10-26T18:28:33.751439",
+  "total_sequences": 48000,
+  "num_classes": 8,
+  "sources": [
+    "MARES",
+    "BOLD",
+    "NCBI"
+  ],
+  "quality_filters": {
+    "min_length": 100,
+    "max_length": 1500,
+    "max_n_percent": 10.0,
+    "valid_bases": [
+      "C",
+      "N",
+      "A",
+      "G",
+      "T"
+    ],
+    "remove_duplicates": true
+  },
+  "class_distribution": {
+    "Perciformes": 10000,
+    "Salmoniformes": 5000,
+    "Clupeiformes": 5000,
+    "Gadiformes": 5000,
+    "Pleuronectiformes": 3000,
+    "Decapoda": 8000,
+    "Bivalvia": 6000,
+    "Gastropoda": 6000
+  },
+  "integration_stats": {
+    "total": 77148,
+    "duplicates": 56427
+  }
+}
