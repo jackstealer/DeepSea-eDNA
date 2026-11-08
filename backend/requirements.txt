@@ -5,6 +5,11 @@ python-multipart>=0.0.22
 pydantic>=2.12.0
 pydantic-settings>=2.12.0
 
+# Security
+python-jose[cryptography]>=3.3.0
+passlib[bcrypt]>=1.7.4
+python-multipart>=0.0.22
+
 # Deep Learning
 torch>=2.0.0
 numpy>=1.24.0

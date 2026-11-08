@@ -1,7 +1,7 @@
 import logging
 from contextlib import asynccontextmanager
 from typing import Optional, Dict, Any, List
-from fastapi import FastAPI, HTTPException, Request
+from fastapi import FastAPI, HTTPException, Request, status
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.middleware.gzip import GZipMiddleware
 from prometheus_client import make_asgi_app
@@ -14,6 +14,11 @@ from mlops.cache_manager import CacheManager
 from mlops.monitoring import MonitoringManager
 from mlops.model_versioning import ModelVersionRegistry
 from mlops.ab_testing import ABTestManager
+from mlops.advanced_security import (
+    SecurityManager, Token, UserCreate, UserResponse,
+    UserRole, Permission, oauth2_scheme
+)
+from fastapi.security import OAuth2PasswordRequestForm
 
 # Setup logging
 setup_logging()
@@ -25,14 +30,20 @@ cache_manager = None
 monitoring_manager = None
 version_registry = None
 ab_test_manager = None
+security_manager = None
 
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
-    global model_loader, cache_manager, monitoring_manager, version_registry, ab_test_manager
+    global model_loader, cache_manager, monitoring_manager, version_registry, ab_test_manager, security_manager
     logger.info("Starting eDNA Analysis API...")
     logger.info(f"Environment: {settings.ENVIRONMENT}")
     logger.info(f"Model Device: {settings.MODEL_DEVICE}")
+    
+    # Initialize security manager
+    security_manager = SecurityManager()
+    app.state.security_manager = security_manager
+    logger.info(f"Security manager initialized: {len(security_manager.users)} users")
     
     # Initialize monitoring manager
     monitoring_manager = MonitoringManager()
@@ -204,6 +215,208 @@ async def get_cache_backend():
     return {
         "backend": cache_manager.backend,
         "description": "Redis" if cache_manager.backend == "redis" else "In-memory (fallback)"
+    }
+
+
+# ==================== Feature #9: Advanced Security & RBAC ====================
+
+@app.post("/auth/token", response_model=Token)
+async def login(
+    form_data: OAuth2PasswordRequestForm = Depends(),
+    request: Request = None
+):
+    """
+    OAuth2 compatible token login endpoint
+    Returns access and refresh tokens
+    """
+    sec_manager = request.app.state.security_manager
+    if not sec_manager:
+        raise HTTPException(status_code=503, detail="Security manager not initialized")
+    
+    # Authenticate user
+    user = sec_manager.authenticate_user(form_data.username, form_data.password)
+    if not user:
+        raise HTTPException(
+            status_code=status.HTTP_401_UNAUTHORIZED,
+            detail="Incorrect username or password",
+            headers={"WWW-Authenticate": "Bearer"},
+        )
+    
+    # Create tokens
+    access_token = sec_manager.create_access_token(
+        data={"sub": user.username, "role": user.role}
+    )
+    refresh_token = sec_manager.create_refresh_token(
+        data={"sub": user.username, "role": user.role}
+    )
+    
+    return Token(access_token=access_token, refresh_token=refresh_token)
+
+
+@app.post("/auth/register", response_model=UserResponse)
+async def register_user(
+    user_data: UserCreate,
+    request: Request
+):
+    """Register a new user (public endpoint for demo)"""
+    sec_manager = request.app.state.security_manager
+    if not sec_manager:
+        raise HTTPException(status_code=503, detail="Security manager not initialized")
+    
+    try:
+        user = sec_manager.create_user(user_data)
+        return UserResponse(
+            username=user.username,
+            email=user.email,
+            full_name=user.full_name,
+            role=user.role,
+            disabled=user.disabled,
+            created_at=user.created_at,
+            last_login=user.last_login
+        )
+    except ValueError as e:
+        raise HTTPException(status_code=400, detail=str(e))
+
+
+@app.get("/auth/me", response_model=UserResponse)
+async def get_current_user(
+    request: Request,
+    token: str = Depends(oauth2_scheme)
+):
+    """Get current authenticated user"""
+    sec_manager = request.app.state.security_manager
+    if not sec_manager:
+        raise HTTPException(status_code=503, detail="Security manager not initialized")
+    
+    # Verify token
+    token_data = sec_manager.verify_token(token)
+    if token_data is None:
+        raise HTTPException(
+            status_code=status.HTTP_401_UNAUTHORIZED,
+            detail="Invalid authentication credentials"
+        )
+    
+    # Get user
+    user = sec_manager.get_user(token_data.username)
+    if user is None or user.disabled:
+        raise HTTPException(
+            status_code=status.HTTP_401_UNAUTHORIZED,
+            detail="User not found or disabled"
+        )
+    
+    return UserResponse(
+        username=user.username,
+        email=user.email,
+        full_name=user.full_name,
+        role=user.role,
+        disabled=user.disabled,
+        created_at=user.created_at,
+        last_login=user.last_login
+    )
+
+
+@app.post("/auth/refresh")
+async def refresh_token(
+    refresh_token: str,
+    request: Request
+):
+    """Refresh access token using refresh token"""
+    sec_manager = request.app.state.security_manager
+    if not sec_manager:
+        raise HTTPException(status_code=503, detail="Security manager not initialized")
+    
+    # Verify refresh token
+    token_data = sec_manager.verify_token(refresh_token)
+    if token_data is None:
+        raise HTTPException(
+            status_code=status.HTTP_401_UNAUTHORIZED,
+            detail="Invalid refresh token"
+        )
+    
+    # Create new access token
+    access_token = sec_manager.create_access_token(
+        data={"sub": token_data.username, "role": token_data.role}
+    )
+    
+    return {"access_token": access_token, "token_type": "bearer"}
+
+
+@app.post("/auth/logout")
+async def logout(
+    request: Request,
+    token: str = Depends(oauth2_scheme)
+):
+    """Logout by revoking the current token"""
+    sec_manager = request.app.state.security_manager
+    if not sec_manager:
+        raise HTTPException(status_code=503, detail="Security manager not initialized")
+    
+    sec_manager.revoke_token(token)
+    return {"message": "Successfully logged out"}
+
+
+@app.get("/auth/users")
+async def list_users(request: Request):
+    """List all users (admin only in production)"""
+    sec_manager = request.app.state.security_manager
+    if not sec_manager:
+        raise HTTPException(status_code=503, detail="Security manager not initialized")
+    
+    users = sec_manager.list_users()
+    return {
+        "total": len(users),
+        "users": [
+            UserResponse(
+                username=u.username,
+                email=u.email,
+                full_name=u.full_name,
+                role=u.role,
+                disabled=u.disabled,
+                created_at=u.created_at,
+                last_login=u.last_login
+            )
+            for u in users
+        ]
+    }
+
+
+@app.get("/auth/security-stats")
+async def get_security_stats(request: Request):
+    """Get security statistics"""
+    sec_manager = request.app.state.security_manager
+    if not sec_manager:
+        raise HTTPException(status_code=503, detail="Security manager not initialized")
+    
+    return sec_manager.get_statistics()
+
+
+@app.get("/auth/permissions")
+async def get_permissions(request: Request):
+    """Get available permissions and role mappings"""
+    return {
+        "roles": [
+            {
+                "role": "admin",
+                "description": "Full system access",
+                "permissions": "all"
+            },
+            {
+                "role": "scientist",
+                "description": "Can manage models and experiments",
+                "permissions": ["predict", "model:*", "version:*", "experiment:*", "monitoring:view"]
+            },
+            {
+                "role": "viewer",
+                "description": "Read-only access",
+                "permissions": ["predict", "model:view", "version:view", "experiment:view"]
+            },
+            {
+                "role": "api_user",
+                "description": "API access for predictions only",
+                "permissions": ["predict", "predict:batch"]
+            }
+        ],
+        "all_permissions": [p.value for p in Permission]
     }
 
 
