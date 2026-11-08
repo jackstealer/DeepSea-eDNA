@@ -218,12 +218,14 @@ def create_app(
         )
     
     @app.post("/predict", response_model=PredictionOutput)
-    def predict(data: SequenceInput, request: Request):
+    def predict(data: SequenceInput, request: Request, db: Session = Depends(get_db)):
         """
         Predict taxonomic class from DNA sequence
         
         - **sequence**: DNA sequence (50-1500 bp, characters: A, C, G, T, N)
         """
+        start_time = time.time()
+        
         try:
             # Validate sequence
             sequence = data.sequence.upper()
@@ -233,6 +235,21 @@ def create_app(
                     status_code=400,
                     detail="Invalid DNA sequence. Only A, C, G, T, N characters allowed."
                 )
+            
+            # Check cache (if sequence was predicted recently)
+            try:
+                cached = get_prediction_by_sequence_hash(db, sequence)
+                if cached:
+                    print(f"✅ Cache hit for sequence (ID: {cached.id})")
+                    return PredictionOutput(
+                        class_id=cached.class_id,
+                        class_name=cached.class_name,
+                        common_name=cached.common_name,
+                        confidence=cached.confidence,
+                        model_version=cached.model_version
+                    )
+            except Exception as cache_error:
+                print(f"⚠️  Cache check failed: {cache_error}")
             
             # Convert sequence to tensor
             seq_tensor = sequence_to_tensor(sequence, max_length=1000)
@@ -253,6 +270,30 @@ def create_app(
                 "name": f"Class_{prediction}",
                 "common_name": "Unknown"
             })
+            
+            # Calculate processing time
+            processing_time_ms = (time.time() - start_time) * 1000
+            
+            # Save to database
+            try:
+                client_ip = request.client.host if request.client else None
+                user_agent = request.headers.get("user-agent", "")
+                
+                create_prediction(
+                    db=db,
+                    sequence=sequence,
+                    class_id=prediction,
+                    class_name=class_info["name"],
+                    common_name=class_info["common_name"],
+                    confidence=conf_value,
+                    model_version=request.app.state.model_version,
+                    device=request.app.state.device,
+                    processing_time_ms=processing_time_ms,
+                    request_ip=client_ip,
+                    user_agent=user_agent
+                )
+            except Exception as db_error:
+                print(f"⚠️  Failed to save prediction to database: {db_error}")
             
             return PredictionOutput(
                 class_id=prediction,
@@ -308,3 +349,142 @@ app = create_app()
 if __name__ == "__main__":
     import uvicorn
     uvicorn.run(app, host="0.0.0.0", port=8000)
+
+    # ========================================
+    # DATABASE ENDPOINTS - Feature #1
+    # ========================================
+    
+    from database import get_db, init_db, Prediction as DBPrediction
+    from crud import (
+        create_prediction, get_prediction, get_predictions,
+        get_statistics, get_prediction_by_sequence_hash
+    )
+    from sqlalchemy.orm import Session
+    from fastapi import Depends
+    import time
+    
+    # Initialize database on startup
+    try:
+        init_db()
+    except Exception as e:
+        print(f"⚠️  Database initialization warning: {e}")
+    
+    @app.get("/predictions/history")
+    def get_prediction_history(
+        skip: int = 0,
+        limit: int = 100,
+        class_name: str = None,
+        min_confidence: float = None,
+        db: Session = Depends(get_db)
+    ):
+        """
+        Get prediction history with optional filters
+        
+        - **skip**: Number of records to skip (for pagination)
+        - **limit**: Maximum number of records to return (max 100)
+        - **class_name**: Filter by class name (e.g., "Perciformes")
+        - **min_confidence**: Minimum confidence threshold (0.0-1.0)
+        """
+        try:
+            predictions = get_predictions(
+                db=db,
+                skip=skip,
+                limit=min(limit, 100),
+                class_name=class_name,
+                min_confidence=min_confidence
+            )
+            
+            return {
+                "total": len(predictions),
+                "skip": skip,
+                "limit": limit,
+                "predictions": [
+                    {
+                        "id": p.id,
+                        "class_name": p.class_name,
+                        "common_name": p.common_name,
+                        "confidence": p.confidence,
+                        "sequence_length": len(p.sequence),
+                        "model_version": p.model_version,
+                        "created_at": p.created_at.isoformat(),
+                        "processing_time_ms": p.processing_time_ms
+                    }
+                    for p in predictions
+                ]
+            }
+        except Exception as e:
+            raise HTTPException(status_code=500, detail=f"Failed to fetch history: {str(e)}")
+    
+    @app.get("/predictions/{prediction_id}")
+    def get_prediction_detail(
+        prediction_id: int,
+        db: Session = Depends(get_db)
+    ):
+        """
+        Get detailed information about a specific prediction
+        
+        - **prediction_id**: ID of the prediction to retrieve
+        """
+        try:
+            prediction = get_prediction(db, prediction_id)
+            if not prediction:
+                raise HTTPException(status_code=404, detail="Prediction not found")
+            
+            return {
+                "id": prediction.id,
+                "sequence": prediction.sequence,
+                "sequence_length": len(prediction.sequence),
+                "class_id": prediction.class_id,
+                "class_name": prediction.class_name,
+                "common_name": prediction.common_name,
+                "confidence": prediction.confidence,
+                "model_version": prediction.model_version,
+                "device": prediction.device,
+                "created_at": prediction.created_at.isoformat(),
+                "processing_time_ms": prediction.processing_time_ms,
+                "request_ip": prediction.request_ip,
+                "metadata": prediction.metadata
+            }
+        except HTTPException:
+            raise
+        except Exception as e:
+            raise HTTPException(status_code=500, detail=f"Failed to fetch prediction: {str(e)}")
+    
+    @app.get("/statistics")
+    def get_api_statistics(
+        days: int = 7,
+        db: Session = Depends(get_db)
+    ):
+        """
+        Get prediction statistics for the specified period
+        
+        - **days**: Number of days to include in statistics (default: 7)
+        """
+        try:
+            stats = get_statistics(db, days=days)
+            return stats
+        except Exception as e:
+            raise HTTPException(status_code=500, detail=f"Failed to fetch statistics: {str(e)}")
+    
+    @app.delete("/predictions/{prediction_id}")
+    def delete_prediction(
+        prediction_id: int,
+        db: Session = Depends(get_db)
+    ):
+        """
+        Delete a prediction record
+        
+        - **prediction_id**: ID of the prediction to delete
+        """
+        try:
+            prediction = get_prediction(db, prediction_id)
+            if not prediction:
+                raise HTTPException(status_code=404, detail="Prediction not found")
+            
+            db.delete(prediction)
+            db.commit()
+            return {"message": "Prediction deleted successfully", "id": prediction_id}
+        except HTTPException:
+            raise
+        except Exception as e:
+            raise HTTPException(status_code=500, detail=f"Failed to delete prediction: {str(e)}")

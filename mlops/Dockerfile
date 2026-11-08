@@ -16,6 +16,8 @@ RUN pip install --no-cache-dir -r requirements.txt
 
 # Copy application code
 COPY mlops/main.py .
+COPY mlops/database.py .
+COPY mlops/crud.py .
 COPY mlops/models/ ./models/
 
 # Copy backend modules (needed for model loading)

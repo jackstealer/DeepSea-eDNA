@@ -5,7 +5,7 @@ Write-Host "Running DeepSea eDNA API Container" -ForegroundColor Cyan
 Write-Host "========================================" -ForegroundColor Cyan
 
 $containerName = "deepsea-edna-api"
-$imageName = "deepsea-edna-api:v1.1"
+$imageName = "deepsea-edna-api:v1.2"
 $port = 8000
 
 # Check if image exists

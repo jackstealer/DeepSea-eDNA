@@ -9,3 +9,5 @@ biopython>=1.81
 pytest>=7.4.0
 httpx>=0.25.0
 python-multipart
+sqlalchemy>=2.0.0
+aiosqlite>=0.19.0
