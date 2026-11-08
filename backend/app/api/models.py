@@ -2,14 +2,29 @@
 Model management API endpoints
 """
 import logging
-from fastapi import APIRouter, HTTPException
+import hashlib
+from fastapi import APIRouter, HTTPException, Request
 from pathlib import Path
+from pydantic import BaseModel
+from typing import Optional
 
 from app.core.config import settings
 
 logger = logging.getLogger(__name__)
 
 router = APIRouter()
+
+
+class PredictRequest(BaseModel):
+    sequence: str
+    use_cache: bool = True
+
+
+class PredictResponse(BaseModel):
+    predicted_class: str
+    confidence: float
+    alternatives: list
+    cached: bool = False
 
 
 @router.get("/models")
@@ -63,3 +78,59 @@ async def get_model_info(model_name: str):
             info['classes'] = list(taxonomy.values())
     
     return info
+
+
+@router.post("/predict", response_model=PredictResponse)
+async def predict_sequence(request: PredictRequest, req: Request):
+    """
+    Predict taxonomic classification for a DNA sequence with caching
+    """
+    try:
+        model_loader = req.app.state.model_loader
+        cache_manager = req.app.state.cache_manager
+        
+        # Check cache if enabled
+        cached_result = None
+        if request.use_cache and cache_manager:
+            # Generate cache key
+            seq_hash = hashlib.md5(request.sequence.encode()).hexdigest()
+            cache_key = f"predict:{seq_hash}"
+            cached_result = cache_manager.get(cache_key)
+        
+        if cached_result:
+            logger.info("Returning cached prediction")
+            return PredictResponse(**cached_result, cached=True)
+        
+        # Make prediction
+        predictions = model_loader.predict([request.sequence])
+        
+        if not predictions:
+            raise HTTPException(status_code=400, detail="Prediction failed")
+        
+        result = predictions[0]
+        
+        # Prepare response
+        response_data = {
+            "predicted_class": result.get("taxon_name", "Unknown"),
+            "confidence": result.get("confidence", 0.0),
+            "alternatives": [
+                {
+                    "class": alt.get("taxon_name", "Unknown"),
+                    "confidence": alt.get("confidence", 0.0)
+                }
+                for alt in result.get("alternatives", [])[:3]
+            ],
+            "cached": False
+        }
+        
+        # Cache the result
+        if request.use_cache and cache_manager:
+            seq_hash = hashlib.md5(request.sequence.encode()).hexdigest()
+            cache_key = f"predict:{seq_hash}"
+            cache_manager.set(cache_key, response_data, ttl=3600)  # 1 hour TTL
+        
+        return PredictResponse(**response_data)
+        
+    except Exception as e:
+        logger.error(f"Prediction error: {e}")
+        raise HTTPException(status_code=500, detail=str(e))
