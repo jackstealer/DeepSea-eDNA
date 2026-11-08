@@ -7,7 +7,7 @@ Write-Host "========================================" -ForegroundColor Cyan
 $imageName = "deepsea-edna-api"
 $imageTag = "v1.0"
 
-Write-Host "Image: $imageName:$imageTag" -ForegroundColor Yellow
+Write-Host "Image: ${imageName}:${imageTag}" -ForegroundColor Yellow
 Write-Host ""
 
 # Check if model exists

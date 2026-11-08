@@ -11,12 +11,12 @@ RUN apt-get update && apt-get install -y \
     && rm -rf /var/lib/apt/lists/*
 
 # Copy requirements and install Python dependencies
-COPY requirements.txt .
+COPY mlops/requirements.txt .
 RUN pip install --no-cache-dir -r requirements.txt
 
 # Copy application code
-COPY main.py .
-COPY models/ ./models/
+COPY mlops/main.py .
+COPY mlops/models/ ./models/
 
 # Copy backend modules (needed for model loading)
 # Note: When building, use: docker build -f mlops/Dockerfile -t deepsea-edna-api:v1.0 .
