@@ -89,9 +89,9 @@ jobs:
 
           # Test MonitoringManager
           monitor = MonitoringManager()
-          metrics = monitor.get_system_metrics()
-          assert 'cpu' in metrics, 'System metrics missing cpu'
-          print('✅ MonitoringManager metrics OK')
+          health = monitor.get_system_health()
+          assert 'cpu' in health, 'System health missing cpu'
+          print('✅ MonitoringManager health OK')
           "
 
   security-scan:
