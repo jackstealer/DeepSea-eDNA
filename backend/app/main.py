@@ -1,10 +1,15 @@
 import logging
+import sys
+from pathlib import Path
 from contextlib import asynccontextmanager
 from typing import Optional, Dict, Any, List
-from fastapi import FastAPI, HTTPException, Request, status
+from fastapi import FastAPI, HTTPException, Request, status, Depends
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.middleware.gzip import GZipMiddleware
 from prometheus_client import make_asgi_app
+
+# Add parent directory to path for mlops imports
+sys.path.insert(0, str(Path(__file__).parent.parent.parent))
 
 from app.api import analysis, upload, export, models
 from app.core.config import settings

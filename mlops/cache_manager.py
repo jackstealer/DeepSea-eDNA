@@ -45,6 +45,11 @@ class CacheManager:
                 print(f"⚠️  Redis not available: {e}")
                 print("Using in-memory cache fallback")
     
+    @property
+    def backend(self) -> str:
+        """Get the backend type being used"""
+        return "redis" if self.use_redis else "in-memory"
+    
     @staticmethod
     def generate_cache_key(sequence: str, prefix: str = "pred") -> str:
         """

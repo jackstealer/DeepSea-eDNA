@@ -54,7 +54,7 @@ class Prediction(Base):
     processing_time_ms = Column(Float)  # How long prediction took
     
     # Additional data
-    metadata = Column(JSON)  # Store any extra info
+    extra_data = Column(JSON)  # Store any extra info (renamed from metadata)
 
 
 class BatchJob(Base):
@@ -85,7 +85,7 @@ class BatchJob(Base):
     # Metadata
     filename = Column(String(200))
     user_id = Column(String(100))
-    metadata = Column(JSON)
+    extra_info = Column(JSON)  # Renamed from metadata
 
 
 class APIKey(Base):

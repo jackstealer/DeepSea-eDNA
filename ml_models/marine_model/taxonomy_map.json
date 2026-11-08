@@ -1,0 +1,42 @@
+{
+  "0": {
+    "name": "Perciformes",
+    "rank": "order",
+    "lineage": ["Animalia", "Chordata", "Actinopterygii", "Perciformes"]
+  },
+  "1": {
+    "name": "Salmoniformes",
+    "rank": "order",
+    "lineage": ["Animalia", "Chordata", "Actinopterygii", "Salmoniformes"]
+  },
+  "2": {
+    "name": "Clupeiformes",
+    "rank": "order",
+    "lineage": ["Animalia", "Chordata", "Actinopterygii", "Clupeiformes"]
+  },
+  "3": {
+    "name": "Gadiformes",
+    "rank": "order",
+    "lineage": ["Animalia", "Chordata", "Actinopterygii", "Gadiformes"]
+  },
+  "4": {
+    "name": "Pleuronectiformes",
+    "rank": "order",
+    "lineage": ["Animalia", "Chordata", "Actinopterygii", "Pleuronectiformes"]
+  },
+  "5": {
+    "name": "Decapoda",
+    "rank": "order",
+    "lineage": ["Animalia", "Arthropoda", "Malacostraca", "Decapoda"]
+  },
+  "6": {
+    "name": "Bivalvia",
+    "rank": "class",
+    "lineage": ["Animalia", "Mollusca", "Bivalvia"]
+  },
+  "7": {
+    "name": "Gastropoda",
+    "rank": "class",
+    "lineage": ["Animalia", "Mollusca", "Gastropoda"]
+  }
+}
