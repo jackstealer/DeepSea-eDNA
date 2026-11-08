@@ -1,75 +1,31 @@
-name: MLOps CI/CD Pipeline
+name: MLOps CI/CD Pipeline (Legacy)
+
+# This workflow is deprecated - use the new modular workflows instead:
+# - ci-tests.yml: For testing and linting
+# - docker-build.yml: For Docker image builds
+# - deploy.yml: For deployments
 
 on:
-  push:
-    branches: [main, develop]
-  pull_request:
-    branches: [main]
-  workflow_dispatch:
+  workflow_dispatch: # Manual trigger only
 
 env:
   DOCKER_IMAGE: deepsea-edna-api
-  DOCKER_TAG: ${{ github.sha }}
 
 jobs:
-  # Job 1: Lint and Test
-  test:
-    name: Lint and Test
+  deprecation-notice:
+    name: Deprecation Notice
     runs-on: ubuntu-latest
 
     steps:
-      - name: Checkout code
-        uses: actions/checkout@v4
-
-      - name: Set up Python
-        uses: actions/setup-python@v4
-        with:
-          python-version: "3.11"
-
-      - name: Cache dependencies
-        uses: actions/cache@v3
-        with:
-          path: ~/.cache/pip
-          key: ${{ runner.os }}-pip-${{ hashFiles('mlops/requirements.txt') }}
-          restore-keys: |
-            ${{ runner.os }}-pip-
-
-      - name: Install dependencies
+      - name: Notify deprecation
         run: |
-          cd mlops
-          pip install -r requirements.txt
-          pip install pytest pytest-cov flake8 black
-
-      - name: Install backend dependencies
-        run: |
-          cd backend
-          pip install -r requirements.txt
-
-      - name: Lint with flake8
-        run: |
-          cd mlops
-          flake8 main.py train_with_mlflow.py --max-line-length=120 --ignore=E501,W503
-        continue-on-error: true
-
-      - name: Format check with black
-        run: |
-          cd mlops
-          black --check main.py train_with_mlflow.py --line-length=120
-        continue-on-error: true
-
-      - name: Run tests
-        run: |
-          export PYTHONPATH="${PYTHONPATH}:${GITHUB_WORKSPACE}"
-          cd mlops
-          pytest test_api.py -v --cov=main --cov-report=xml
-
-      - name: Upload coverage to Codecov
-        uses: codecov/codecov-action@v3
-        with:
-          file: ./mlops/coverage.xml
-          flags: unittests
-          name: codecov-umbrella
-        continue-on-error: true
+          echo "::warning::This workflow is deprecated!"
+          echo "::notice::Please use the new modular workflows:"
+          echo "  - ci-tests.yml: Automated testing and linting"
+          echo "  - docker-build.yml: Docker image builds"
+          echo "  - deploy.yml: Production deployments"
+          echo "  - pr-checks.yml: Pull request validation"
+          echo "  - monitoring.yml: System health monitoring"
 
   # Job 2: Build Docker Image
   build:

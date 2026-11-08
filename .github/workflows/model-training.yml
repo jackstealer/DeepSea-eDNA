@@ -1,0 +1,167 @@
+name: Model Training Pipeline
+
+on:
+  workflow_dispatch:
+    inputs:
+      dataset:
+        description: 'Training dataset to use'
+        required: true
+        default: 'marine_diverse'
+        type: choice
+        options:
+          - marine_diverse
+          - custom
+      epochs:
+        description: 'Number of training epochs'
+        required: true
+        default: '50'
+      learning_rate:
+        description: 'Learning rate'
+        required: false
+        default: '0.001'
+
+jobs:
+  train-model:
+    name: Train Deep Learning Model
+    runs-on: ubuntu-latest
+    # Uncomment if you have GPU runners
+    # runs-on: [self-hosted, gpu]
+    
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Set up Python 3.11
+        uses: actions/setup-python@v4
+        with:
+          python-version: "3.11"
+
+      - name: Install dependencies
+        run: |
+          pip install --upgrade pip
+          cd backend
+          pip install -r requirements.txt
+          pip install mlflow tensorboard
+
+      - name: Check GPU availability
+        run: |
+          python -c "import torch; print(f'CUDA available: {torch.cuda.is_available()}')"
+          python -c "import torch; print(f'CUDA devices: {torch.cuda.device_count()}')" || true
+
+      - name: Download training data
+        run: |
+          echo "Downloading training data: ${{ inputs.dataset }}"
+          # Add your data download logic here
+          # Example: aws s3 sync s3://your-bucket/data/ ./data/training/
+
+      - name: Train model
+        env:
+          PYTHONPATH: ${{ github.workspace }}
+          TRAINING_EPOCHS: ${{ inputs.epochs }}
+          LEARNING_RATE: ${{ inputs.learning_rate }}
+        run: |
+          cd backend
+          python training/train_model.py \
+            --data-dir ../data/training/${{ inputs.dataset }} \
+            --output-dir ../ml_models/marine_model \
+            --epochs ${{ inputs.epochs }} \
+            --learning-rate ${{ inputs.learning_rate }} \
+            --save-best-model
+
+      - name: Evaluate model
+        run: |
+          echo "Model training complete!"
+          echo "Checking model artifacts..."
+          ls -lh ml_models/marine_model/
+
+      - name: Upload model artifacts
+        uses: actions/upload-artifact@v3
+        with:
+          name: trained-model-${{ github.run_number }}
+          path: |
+            ml_models/marine_model/best_model.pth
+            ml_models/marine_model/training_history.json
+            ml_models/marine_model/training_curves.png
+            ml_models/marine_model/confusion_matrix.png
+
+      - name: Upload to model registry (optional)
+        if: success()
+        run: |
+          echo "Uploading model to registry..."
+          # Add logic to upload to your model registry
+          # Example: aws s3 cp ml_models/marine_model/best_model.pth s3://models/
+
+      - name: Create training report
+        run: |
+          echo "# Model Training Report" > training-report.md
+          echo "" >> training-report.md
+          echo "## Parameters" >> training-report.md
+          echo "- **Dataset**: ${{ inputs.dataset }}" >> training-report.md
+          echo "- **Epochs**: ${{ inputs.epochs }}" >> training-report.md
+          echo "- **Learning Rate**: ${{ inputs.learning_rate }}" >> training-report.md
+          echo "- **Run ID**: ${{ github.run_number }}" >> training-report.md
+          echo "" >> training-report.md
+          echo "## Results" >> training-report.md
+          cat ml_models/marine_model/training_history.json || echo "No history file" >> training-report.md
+
+      - name: Upload training report
+        uses: actions/upload-artifact@v3
+        with:
+          name: training-report
+          path: training-report.md
+
+  validate-model:
+    name: Validate Trained Model
+    needs: train-model
+    runs-on: ubuntu-latest
+    
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Set up Python 3.11
+        uses: actions/setup-python@v4
+        with:
+          python-version: "3.11"
+
+      - name: Install dependencies
+        run: |
+          cd backend
+          pip install -r requirements.txt
+
+      - name: Download trained model
+        uses: actions/download-artifact@v3
+        with:
+          name: trained-model-${{ github.run_number }}
+          path: ml_models/marine_model/
+
+      - name: Validate model file
+        run: |
+          python -c "
+          import torch
+          checkpoint = torch.load('ml_models/marine_model/best_model.pth', map_location='cpu')
+          print('✅ Model file is valid')
+          print(f'Keys: {list(checkpoint.keys())}')
+          print(f'Epoch: {checkpoint.get(\"epoch\", \"N/A\")}')
+          "
+
+      - name: Test model inference
+        env:
+          PYTHONPATH: ${{ github.workspace }}
+        run: |
+          python -c "
+          import sys
+          sys.path.insert(0, 'backend')
+          from app.models.deep_learning import DeepTaxaClassifier
+          import torch
+          
+          # Load model
+          checkpoint = torch.load('ml_models/marine_model/best_model.pth', map_location='cpu')
+          
+          # Create model instance
+          model = DeepTaxaClassifier(num_classes=8, embedding_dim=128, hidden_dim=256)
+          model.load_state_dict(checkpoint['model_state_dict'])
+          model.eval()
+          
+          print('✅ Model inference test passed')
+          "

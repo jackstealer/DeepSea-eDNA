@@ -1,0 +1,135 @@
+name: Deploy to Production
+
+on:
+  push:
+    tags:
+      - 'v*.*.*'
+  workflow_dispatch:
+    inputs:
+      environment:
+        description: 'Deployment environment'
+        required: true
+        default: 'staging'
+        type: choice
+        options:
+          - staging
+          - production
+
+jobs:
+  deploy:
+    name: Deploy to ${{ inputs.environment || 'production' }}
+    runs-on: ubuntu-latest
+    environment:
+      name: ${{ inputs.environment || 'production' }}
+    
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Extract version
+        id: version
+        run: |
+          if [[ "${{ github.ref }}" == refs/tags/* ]]; then
+            VERSION=${GITHUB_REF#refs/tags/}
+          else
+            VERSION="latest"
+          fi
+          echo "version=$VERSION" >> $GITHUB_OUTPUT
+          echo "Deploying version: $VERSION"
+
+      - name: Configure AWS credentials (if using AWS)
+        if: false  # Enable if using AWS
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          aws-region: us-east-1
+
+      - name: Deploy to server
+        run: |
+          echo "Deploying to ${{ inputs.environment || 'production' }}"
+          echo "Version: ${{ steps.version.outputs.version }}"
+          
+          # Add your deployment commands here
+          # Examples:
+          # - Deploy to AWS ECS/EKS
+          # - Deploy to Azure Container Instances
+          # - Deploy to GCP Cloud Run
+          # - SSH to server and update containers
+          # - Use Kubernetes deployment
+          
+          # Example Docker deployment:
+          # docker pull ${{ secrets.DOCKER_USERNAME }}/deepsea-edna-api:${{ steps.version.outputs.version }}
+          # docker-compose up -d
+
+      - name: Health check
+        run: |
+          echo "Running health checks..."
+          # Add health check commands
+          # Example: curl -f https://api.deepsea-edna.com/health
+
+      - name: Run smoke tests
+        run: |
+          echo "Running smoke tests..."
+          # Add smoke test commands
+
+      - name: Rollback on failure
+        if: failure()
+        run: |
+          echo "Deployment failed! Rolling back..."
+          # Add rollback commands
+
+      - name: Notify deployment success
+        if: success()
+        run: |
+          echo "Deployment successful!"
+          echo "Environment: ${{ inputs.environment || 'production' }}"
+          echo "Version: ${{ steps.version.outputs.version }}"
+          # Add notification logic (Slack, email, etc.)
+
+  post-deploy-tests:
+    name: Post-Deployment Tests
+    needs: deploy
+    runs-on: ubuntu-latest
+    
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v4
+        with:
+          python-version: "3.11"
+
+      - name: Install test dependencies
+        run: |
+          pip install requests pytest
+
+      - name: Run integration tests
+        env:
+          API_URL: ${{ secrets.API_URL }}
+        run: |
+          echo "Running integration tests against deployed API..."
+          # Add integration test commands
+
+      - name: Load testing (optional)
+        if: inputs.environment == 'production'
+        run: |
+          echo "Running load tests..."
+          # Add load testing commands (e.g., using locust, k6)
+
+      - name: Generate deployment report
+        run: |
+          echo "# Deployment Report" > deployment-report.md
+          echo "" >> deployment-report.md
+          echo "## Details" >> deployment-report.md
+          echo "- **Environment**: ${{ inputs.environment || 'production' }}" >> deployment-report.md
+          echo "- **Date**: $(date -u +'%Y-%m-%d %H:%M:%S UTC')" >> deployment-report.md
+          echo "- **Deployed by**: ${{ github.actor }}" >> deployment-report.md
+          echo "- **Commit**: ${{ github.sha }}" >> deployment-report.md
+
+      - name: Upload deployment report
+        uses: actions/upload-artifact@v3
+        with:
+          name: deployment-report
+          path: deployment-report.md
