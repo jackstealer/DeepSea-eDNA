@@ -1,0 +1,44 @@
+{
+  "family": "deepsea-edna-task",
+  "networkMode": "awsvpc",
+  "requiresCompatibilities": ["FARGATE"],
+  "cpu": "1024",
+  "memory": "2048",
+  "executionRoleArn": "arn:aws:iam::755234501944:role/ecsTaskExecutionRole",
+  "containerDefinitions": [
+    {
+      "name": "deepsea-edna",
+      "image": "755234501944.dkr.ecr.ap-southeast-2.amazonaws.com/deepsea-edna-app:latest",
+      "portMappings": [
+        {
+          "containerPort": 8000,
+          "protocol": "tcp"
+        }
+      ],
+      "environment": [
+        {
+          "name": "ENVIRONMENT",
+          "value": "production"
+        },
+        {
+          "name": "MODEL_DIR",
+          "value": "/app/ml_models/marine_model"
+        },
+        {
+          "name": "LOG_LEVEL",
+          "value": "INFO"
+        }
+      ],
+      "logConfiguration": {
+        "logDriver": "awslogs",
+        "options": {
+          "awslogs-create-group": "true",
+          "awslogs-group": "/ecs/deepsea-edna",
+          "awslogs-region": "ap-southeast-2",
+          "awslogs-stream-prefix": "ecs"
+        }
+      },
+      "essential": true
+    }
+  ]
+}

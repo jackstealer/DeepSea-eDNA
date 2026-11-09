@@ -1,144 +1,125 @@
-﻿# 🌊 DeepSea eDNA AI - Complete MLOps Platform
+﻿# 🌊 DeepSea eDNA AI
 
-[![Python](https://img.shields.io/badge/Python-3.11-blue.svg)](https://www.python.org/)
-[![FastAPI](https://img.shields.io/badge/FastAPI-0.136+-green.svg)](https://fastapi.tiangolo.com/)
-[![PyTorch](https://img.shields.io/badge/PyTorch-2.0+-red.svg)](https://pytorch.org/)
-[![Docker](https://img.shields.io/badge/Docker-ghcr.io-blue.svg)](https://github.com/jackstealer/DeepSea-eDNA/pkgs/container/deepsea-edna)
-[![CI/CD](https://github.com/jackstealer/DeepSea-eDNA/actions/workflows/docker-build.yml/badge.svg)](https://github.com/jackstealer/DeepSea-eDNA/actions)
-[![License](https://img.shields.io/badge/License-MIT-yellow.svg)](LICENSE)
+<div align="center">
 
-**Production-ready MLOps platform for marine taxonomic classification using deep learning on environmental DNA sequences.**
+[![Python](https://img.shields.io/badge/Python-3.11-3776AB?style=for-the-badge&logo=python&logoColor=white)](https://www.python.org/)
+[![FastAPI](https://img.shields.io/badge/FastAPI-0.136+-009688?style=for-the-badge&logo=fastapi&logoColor=white)](https://fastapi.tiangolo.com/)
+[![PyTorch](https://img.shields.io/badge/PyTorch-2.0+-EE4C2C?style=for-the-badge&logo=pytorch&logoColor=white)](https://pytorch.org/)
+[![Docker](https://img.shields.io/badge/Docker-Ready-2496ED?style=for-the-badge&logo=docker&logoColor=white)](https://www.docker.com/)
+[![AWS](https://img.shields.io/badge/AWS-ECS_Fargate-FF9900?style=for-the-badge&logo=amazonaws&logoColor=white)](https://aws.amazon.com/)
+[![License](https://img.shields.io/badge/License-MIT-yellow?style=for-the-badge)](LICENSE)
 
-### 🚀 Quick Deploy
+**Production-ready MLOps platform for marine taxonomic classification using deep learning on environmental DNA (eDNA) sequences.**
 
-```bash
-docker pull ghcr.io/jackstealer/deepsea-edna:latest
-docker run -d -p 8000:8000 ghcr.io/jackstealer/deepsea-edna:latest
-```
+🎯 **94.18% Accuracy** · 🚀 **100+ API Endpoints** · 🐳 **Docker Ready** · ☁️ **AWS Deployed**
 
-🎉 **ALL 15 FEATURES COMPLETE** | ⚡ **94.18% Accuracy** | 🐳 **Auto-Deploy with CI/CD**
+[Live API](http://3.107.100.245:8000) · [Interactive Docs](http://3.107.100.245:8000/api/docs) · [Health Check](http://3.107.100.245:8000/health)
 
----
-
-## 🎯 Overview
-
-DeepSea eDNA AI is a comprehensive machine learning operations platform that provides:
-
-- **94.18% Accuracy** on 8 marine species classification
-- **100+ API Endpoints** for complete ML lifecycle management
-- **Enterprise Security** with JWT authentication and RBAC
-- **Real-time Monitoring** with Prometheus metrics
-- **Model Versioning** and A/B testing capabilities
-- **Complete Documentation** and test coverage
+</div>
 
 ---
 
-## ✨ Features (15/15 Complete)
+## 🧬 What is eDNA?
+
+**Environmental DNA (eDNA)** is genetic material collected from environmental samples (water, sediment, air) without isolating individual organisms. This project uses a custom PyTorch deep-learning model to classify marine organisms directly from their DNA sequences — enabling:
+
+- 🐟 **Non-invasive species monitoring** in aquatic ecosystems
+- 🌍 **Biodiversity assessment** across marine habitats
+- 🔬 **High-throughput taxonomic classification** from bulk samples
+- 🚨 **Early detection** of invasive or endangered species
+- 🎣 **Fisheries management** and stock assessment support
+
+---
+
+## ✨ Features
+
+### 🧠 Core ML Pipeline
+| Feature | Details |
+|---------|---------|
+| **Deep Learning Model** | Custom CNN+LSTM architecture, 94.18% accuracy on 8 marine taxa |
+| **Model Versioning** | Register, compare, activate, rollback, archive & deprecate versions |
+| **A/B Testing** | Live model comparison with statistical significance analysis |
+| **Model Retraining** | Full training pipeline with 48,000+ sequence dataset |
+| **Quality Control** | 4-tier confidence scoring system |
 
 ### 🔐 Security & Access Control
+| Feature | Details |
+|---------|---------|
+| **JWT Authentication** | OAuth2 password flow with access + refresh tokens |
+| **RBAC** | 4 roles (`admin`, `scientist`, `viewer`, `api_user`), 13 permissions |
+| **API Key Management** | Per-key rate limiting and usage tracking |
+| **Token Revocation** | Blacklist-based logout |
 
-- ✅ **JWT Authentication** - OAuth2 password flow
-- ✅ **Role-Based Access Control** - 4 roles, 13 permissions
-- ✅ **API Key Management** - Rate limiting & usage tracking
-
-### 📊 MLOps & Experimentation
-
-- ✅ **Model Versioning** - Track, compare, rollback
-- ✅ **A/B Testing** - Live model comparison with statistical analysis
-- ✅ **Quality Control** - 4-tier confidence system
-- ✅ **Model Retraining** - Automated training pipeline
+### 📡 API & Data Processing
+| Feature | Details |
+|---------|---------|
+| **Single Prediction** | Classify one DNA sequence via REST |
+| **Batch Prediction** | Process hundreds of sequences in one request |
+| **File Upload** | FASTA, FASTQ, CSV batch processing (up to 500 MB) |
+| **Export Formats** | BIOM, JSON, CSV, FASTA, TSV results export |
+| **Data Validation** | Input quality checks (length, base composition, duplicates) |
 
 ### 🎛️ Monitoring & Observability
+| Feature | Details |
+|---------|---------|
+| **Prometheus Metrics** | System and application metrics via `/metrics` |
+| **Health Checks** | Simple `/health` and detailed `/health/detailed` endpoints |
+| **Dashboard API** | Unified system + cache + model status view |
+| **Structured Logging** | JSON-formatted logs with configurable levels |
 
-- ✅ **Prometheus Metrics** - System & application metrics
-- ✅ **Health Checks** - Component-level monitoring
-- ✅ **Dashboard API** - Unified metrics view
-
-### 💾 Data Management
-
-- ✅ **Database Integration** - SQLAlchemy with SQLite/PostgreSQL
-- ✅ **File Upload** - FASTA, FASTQ, CSV batch processing
-- ✅ **Caching** - Redis with in-memory fallback
-- ✅ **Export Formats** - BIOM, JSON, CSV, FASTA, TSV
-
-### 🚀 CI/CD & Deployment
-
-- ✅ **GitHub Actions** - Automated testing on every PR
-- ✅ **Docker Publishing** - Auto-build and push to GHCR
-- ✅ **Multi-stage Builds** - Optimized image size
-- ✅ **Version Tagging** - Semantic versioning support
-- ✅ **One-Command Deploy** - `docker pull` and run
-
-### ✅ Quality & Testing
-
-- ✅ **Data Validation** - Sequence quality checks
-- ✅ **Integration Tests** - Comprehensive test suite
-- ✅ **Complete Documentation** - API docs & guides
+### 💾 Data & Infrastructure
+| Feature | Details |
+|---------|---------|
+| **Database** | SQLAlchemy ORM — SQLite (dev) / PostgreSQL (prod) |
+| **Caching** | Redis with in-memory fallback |
+| **CI/CD** | GitHub Actions — tests, Docker build, GHCR publish |
+| **Cloud Deployment** | AWS ECS Fargate (Sydney region) with one-command deploy |
 
 ---
 
 ## 🚀 Quick Start
 
-### Prerequisites
-
-- Python 3.11+
-- Docker (optional)
-- Redis (optional, has fallback)
-
-### Installation
+### Option 1 — Live API (No Setup Required)
 
 ```bash
-# Clone repository
-git clone https://github.com/jackstealer/DeepSea-eDNA.git
-cd DeepSea-eDNA
+# Health check
+curl http://3.107.100.245:8000/health
 
-# Install dependencies
-pip install -r backend/requirements.txt
-
-# Start API
-uvicorn app.main:app --reload
+# Interactive Swagger UI
+open http://3.107.100.245:8000/api/docs
 ```
 
-### Docker Deployment (Recommended) 🐳
+### Option 2 — Docker (Recommended)
 
-#### Option 1: Pull from GitHub Container Registry (Production-Ready)
-
-Our Docker images are automatically built and published with every commit to main!
+**Pull from GitHub Container Registry:**
 
 ```bash
-# Pull the latest stable release
 docker pull ghcr.io/jackstealer/deepsea-edna:latest
 
-# Run with basic configuration
 docker run -d \
   --name deepsea-edna \
   -p 8000:8000 \
-  -e SECRET_KEY=your-secret-key-here \
   ghcr.io/jackstealer/deepsea-edna:latest
 
-# Access your API
 curl http://localhost:8000/health
-open http://localhost:8000/api/docs
 ```
 
-**Advanced Configuration:**
+**With full configuration:**
 
 ```bash
-# Run with full production setup
 docker run -d \
   --name deepsea-edna-prod \
   -p 8000:8000 \
   -e ENVIRONMENT=production \
-  -e SECRET_KEY=your-secret-key \
+  -e SECRET_KEY=your-super-secret-key \
   -e DATABASE_URL=postgresql://user:pass@db:5432/deepsea \
   -e REDIS_URL=redis://redis:6379/0 \
-  -e MODEL_DIR=/app/ml_models \
   -v $(pwd)/ml_models:/app/ml_models \
   --restart unless-stopped \
   ghcr.io/jackstealer/deepsea-edna:latest
 ```
 
-**Using Docker Compose:**
+**Docker Compose (with PostgreSQL + Redis):**
 
 ```yaml
 version: "3.8"
@@ -170,334 +151,563 @@ volumes:
   postgres_data:
 ```
 
-Run with: `docker-compose up -d`
+```bash
+docker-compose up -d
+```
 
-📖 **Complete Docker documentation:** [DOCKER_PACKAGE.md](DOCKER_PACKAGE.md)
+### Option 3 — Local Development
 
-#### Option 2: Build from Source
+**Prerequisites:** Python 3.11+, Redis (optional)
 
 ```bash
-# Clone and build
+# 1. Clone the repository
 git clone https://github.com/jackstealer/DeepSea-eDNA.git
 cd DeepSea-eDNA
 
-# Build image
-docker build -t deepsea-edna-custom .
+# 2. Create and activate a virtual environment
+python -m venv venv
+source venv/bin/activate       # Linux/macOS
+venv\Scripts\activate          # Windows
 
-# Run your custom build
-docker run -d -p 8000:8000 deepsea-edna-custom
+# 3. Install dependencies
+pip install -r backend/requirements.txt
+
+# 4. Configure environment (copy and edit)
+cp backend/.env.example backend/.env   # adjust as needed
+
+# 5. Start the API server
+cd backend
+uvicorn app.main:app --reload --host 0.0.0.0 --port 8000
 ```
 
-ghcr.io/jackstealer/deepsea-edna:latest
-
-# Access API at http://localhost:8000
-
-````
-
-#### Option 2: Build from Source
-
-```bash
-# Build image
-docker build -t deepsea-edna-api .
-
-# Run container
-docker run -d -p 8000:8000 deepsea-edna-api
-````
-
-📖 **Full Docker documentation:** [DOCKER_PACKAGE.md](DOCKER_PACKAGE.md)
-
-### First Steps
-
-1. **Access API Docs**: http://localhost:8000/api/docs
-2. **Login** (default): `admin` / `admin123`
-3. **Make Prediction**:
-
-```bash
-curl -X POST "http://localhost:8000/api/predict" \
-  -H "Authorization: Bearer <token>" \
-  -H "Content-Type: application/json" \
-  -d '{"sequence": "ATCGATCGATCG"}'
-```
-
----
-
-## 📚 Documentation
-
-- **[Complete API Documentation](docs/API_DOCUMENTATION.md)** - All endpoints & examples
-- **[MLOps Features Guide](docs/MLOPS_FEATURES.md)** - Feature details
-- **Interactive API Docs**: http://localhost:8000/api/docs
-- **Test Scripts**: `mlops/test_*.ps1` - Feature testing
+Visit **http://localhost:8000/api/docs** for the interactive API explorer.
 
 ---
 
 ## 🏗️ Architecture
 
 ```
-┌─────────────────────────────────────────────────────────┐
-│                    FastAPI Application                   │
-├─────────────────────────────────────────────────────────┤
-│                                                          │
-│  ┌──────────────┐  ┌──────────────┐  ┌──────────────┐ │
-│  │ Security     │  │ Monitoring   │  │ Versioning   │ │
-│  │ - JWT Auth   │  │ - Prometheus │  │ - Registry   │ │
-│  │ - RBAC       │  │ - Metrics    │  │ - Comparison │ │
-│  └──────────────┘  └──────────────┘  └──────────────┘ │
-│                                                          │
-│  ┌──────────────┐  ┌──────────────┐  ┌──────────────┐ │
-│  │ A/B Testing  │  │ Caching      │  │ Database     │ │
-│  │ - Experiments│  │ - Redis      │  │ - SQLAlchemy │ │
-│  │ - Statistics │  │ - Fallback   │  │ - History    │ │
-│  └──────────────┘  └──────────────┘  └──────────────┘ │
-│                                                          │
-│  ┌──────────────────────────────────────────────────┐  │
-│  │          PyTorch Deep Learning Model             │  │
-│  │          94.18% Accuracy, 8 Classes              │  │
-│  └──────────────────────────────────────────────────┘  │
-│                                                          │
-└─────────────────────────────────────────────────────────┘
+┌───────────────────────────────────────────────────────────────┐
+│                       Client / Browser                        │
+└──────────────────────────┬────────────────────────────────────┘
+                           │ HTTP
+┌──────────────────────────▼────────────────────────────────────┐
+│                    FastAPI Application                        │
+│                                                               │
+│  ┌────────────┐  ┌────────────┐  ┌────────────┐  ┌────────┐ │
+│  │  /auth/*   │  │  /api/*    │  │ /versions  │  │ /expe- │ │
+│  │ JWT + RBAC │  │ Predict /  │  │ Model Reg- │  │ riment │ │
+│  │ User Mgmt  │  │ Upload /   │  │ istry      │  │ A/B    │ │
+│  │            │  │ Export     │  │            │  │ Tests  │ │
+│  └────────────┘  └────────────┘  └────────────┘  └────────┘ │
+│                                                               │
+│  ┌────────────┐  ┌────────────┐  ┌────────────┐  ┌────────┐ │
+│  │ Monitoring │  │   Cache    │  │  Database  │  │ File   │ │
+│  │ Prometheus │  │ Redis /    │  │ SQLAlchemy │  │ Proc-  │ │
+│  │ /metrics   │  │ In-memory  │  │ SQLite /PG │  │ essor  │ │
+│  └────────────┘  └────────────┘  └────────────┘  └────────┘ │
+│                                                               │
+│  ┌───────────────────────────────────────────────────────┐   │
+│  │          PyTorch Deep Learning Model (v2.1)           │   │
+│  │   CNN + LSTM  ·  8 Marine Taxa  ·  94.18% Accuracy    │   │
+│  └───────────────────────────────────────────────────────┘   │
+└───────────────────────────────────────────────────────────────┘
+         │                                      │
+   ┌─────▼──────┐                       ┌───────▼──────┐
+   │ PostgreSQL │                       │    Redis     │
+   │  Database  │                       │    Cache     │
+   └────────────┘                       └──────────────┘
+```
+
+### Technology Stack
+
+| Layer | Technology |
+|-------|-----------|
+| **API Framework** | FastAPI 0.136+, Uvicorn, Pydantic v2 |
+| **Deep Learning** | PyTorch 2.0+, NumPy, Scikit-learn |
+| **Bioinformatics** | BioPython 1.81+ |
+| **Security** | python-jose (JWT), passlib (bcrypt), OAuth2 |
+| **Database** | SQLAlchemy, PostgreSQL / SQLite |
+| **Caching** | Redis 5+, in-memory fallback |
+| **Monitoring** | Prometheus Client, psutil, python-json-logger |
+| **Testing** | pytest, pytest-asyncio, httpx |
+| **Containerization** | Docker, Docker Compose |
+| **Cloud** | AWS ECS Fargate, AWS ECR |
+| **CI/CD** | GitHub Actions, GitHub Container Registry |
+
+---
+
+## 📁 Project Structure
+
+```
+DeepSea-eDNA/
+├── .github/
+│   └── workflows/
+│       ├── ci-tests.yml          # Run tests on every PR
+│       ├── deploy.yml            # Deploy to AWS ECS
+│       ├── docker-build.yml      # Build & push to GHCR
+│       ├── mlops-ci-cd.yml       # Full MLOps pipeline
+│       ├── model-training.yml    # Trigger model retraining
+│       ├── monitoring.yml        # Scheduled health checks
+│       └── pr-checks.yml        # PR validation
+│
+├── backend/
+│   ├── app/
+│   │   ├── api/
+│   │   │   ├── analysis.py       # Prediction & analysis endpoints
+│   │   │   ├── upload.py         # File upload endpoints
+│   │   │   ├── export.py         # Result export endpoints
+│   │   │   └── models.py         # Model info endpoints
+│   │   ├── core/
+│   │   │   ├── config.py         # Pydantic settings (env-driven)
+│   │   │   └── logging_config.py # JSON structured logging
+│   │   ├── models/
+│   │   │   └── deep_learning.py  # PyTorch CNN+LSTM architecture
+│   │   ├── services/
+│   │   │   ├── model_loader.py   # Model loading & inference
+│   │   │   └── sequence_processor.py  # FASTA/FASTQ parsing
+│   │   └── main.py               # FastAPI app entry point
+│   ├── tests/
+│   │   └── test_integration.py   # Integration test suite
+│   ├── training/
+│   │   └── train_model.py        # Full model training pipeline
+│   ├── .env                      # Environment variables (not committed)
+│   └── requirements.txt          # Python dependencies
+│
+├── mlops/
+│   ├── advanced_security.py      # JWT auth, RBAC, API keys
+│   ├── ab_testing.py             # A/B experiment management
+│   ├── model_versioning.py       # Version registry & rollback
+│   ├── monitoring.py             # Prometheus + health metrics
+│   ├── cache_manager.py          # Redis / in-memory caching
+│   ├── data_validation.py        # Input sequence validation
+│   ├── export_formats.py         # BIOM, CSV, TSV, FASTA export
+│   ├── quality_control.py        # Confidence tier system
+│   ├── file_processor.py         # Batch file ingestion
+│   ├── auth.py                   # Auth helpers
+│   ├── crud.py                   # Database CRUD operations
+│   ├── database.py               # SQLAlchemy setup
+│   └── __init__.py
+│
+├── ml_models/
+│   └── marine_model/
+│       ├── best_model.pth        # Trained PyTorch weights (~3.3 GB)
+│       ├── model_config.json     # Architecture hyperparameters
+│       └── taxonomy_map.json     # Class index → taxonomy mapping
+│
+├── data/
+│   └── training/
+│       └── marine_diverse/
+│           ├── class_0/ … class_7/   # Per-class FASTA sequence files
+│           ├── dataset_statistics.json
+│           └── taxonomy.json
+│
+├── demo_sequences.fasta           # 10 example sequences for testing
+├── Dockerfile                     # Multi-stage production image
+├── ecs-task-definition.json       # AWS ECS Fargate task config
+├── deploy-aws.ps1                 # One-command AWS ECS deployment
+├── .gitignore
+└── README.md
 ```
 
 ---
 
-## 🔑 Default Credentials
+## 🔬 Model Information
 
-**Admin Account:**
+### Marine Taxa Classes
 
-- Username: `admin`
-- Password: `admin123`
+The model classifies 8 marine taxonomic groups from COI/ITS/16S barcoding sequences:
 
-⚠️ **Change in production!**
+| Class ID | Order / Class | Phylum | Example Species |
+|----------|--------------|--------|-----------------|
+| 0 | Perciformes | Chordata | Perch, bass, tuna |
+| 1 | Salmoniformes | Chordata | Salmon, trout |
+| 2 | Clupeiformes | Chordata | Herring, sardine, anchovy |
+| 3 | Gadiformes | Chordata | Cod, haddock |
+| 4 | Pleuronectiformes | Chordata | Flounder, halibut |
+| 5 | Decapoda | Arthropoda | Crabs, shrimp, lobsters |
+| 6 | Bivalvia | Mollusca | Oysters, clams, mussels |
+| 7 | Gastropoda | Mollusca | Snails, abalones |
+
+### Training Dataset
+
+| Metric | Value |
+|--------|-------|
+| Total sequences | 48,000 (after deduplication) |
+| Raw sequences | 77,148 |
+| Duplicate removed | 56,427 |
+| Data sources | MARES, BOLD, NCBI |
+| Min/max sequence length | 100 – 1,500 bp |
+| Validation split | 20% |
+| Best training epoch | 52 |
+
+### Model Architecture
+
+| Parameter | Value |
+|-----------|-------|
+| Embedding dim | 128 |
+| Hidden dim | 256 |
+| Conv layers | 3 |
+| Dropout | 0.4 |
+| Max sequence length | 1,000 bp |
+| Model version | v2.1 |
+
+### Performance
+
+| Metric | Value |
+|--------|-------|
+| **Overall Accuracy** | **94.18%** |
+| Inference latency | < 100 ms (cached) |
+| Cold start | ~30 s (model load) |
+| Throughput | 1,000+ req/s |
+| Cache hit rate | ~80% typical |
+| Model size | ~3.3 GB (.pth weights) |
+| Minimum RAM | 2 GB |
 
 ---
 
-## 📊 API Endpoints Overview
+## 📚 API Reference
 
-### Authentication (8 endpoints)
+### Base URL
 
-- `POST /auth/token` - Login
-- `POST /auth/register` - Register
-- `GET /auth/me` - Current user
-- `POST /auth/refresh` - Refresh token
-- `POST /auth/logout` - Logout
-- `GET /auth/users` - List users
-- `GET /auth/security-stats` - Statistics
-- `GET /auth/permissions` - Permissions
+- **Live:** `http://3.107.100.245:8000`
+- **Local:** `http://localhost:8000`
+- **Swagger UI:** `/api/docs`
+- **ReDoc:** `/api/redoc`
+- **OpenAPI JSON:** `/openapi.json`
 
-### Model Versioning (11 endpoints)
+### Default Admin Credentials
 
-- `GET /versions` - List versions
-- `POST /versions/register` - Register version
-- `GET /versions/{id}` - Version details
-- `POST /versions/{id}/activate` - Activate
-- `POST /versions/{id}/rollback` - Rollback
-- `GET /versions/compare/{id1}/{id2}` - Compare
-- `GET /versions/history` - History
-- And more...
+> ⚠️ **Change these in production!**
 
-### A/B Testing (8 endpoints)
+| Field | Value |
+|-------|-------|
+| Username | `admin` |
+| Password | `admin123` |
 
-- `POST /experiments/create` - Create experiment
-- `POST /experiments/{id}/start` - Start
-- `POST /experiments/{id}/stop` - Stop
-- `GET /experiments/{id}/results` - Results
-- And more...
+---
 
-### Monitoring (8 endpoints)
+### 🔐 Authentication (`/auth`)
 
-- `GET /health` - Basic health
-- `GET /health/detailed` - Detailed health
-- `GET /monitoring/system` - System metrics
-- `GET /monitoring/dashboard` - Dashboard
-- `GET /metrics` - Prometheus metrics
-- And more...
+| Method | Endpoint | Description |
+|--------|----------|-------------|
+| `POST` | `/auth/token` | Login — returns JWT access + refresh tokens |
+| `POST` | `/auth/register` | Register a new user |
+| `GET` | `/auth/me` | Get current authenticated user |
+| `POST` | `/auth/refresh` | Refresh access token |
+| `POST` | `/auth/logout` | Revoke current token |
+| `GET` | `/auth/users` | List all users (admin) |
+| `GET` | `/auth/security-stats` | Security statistics |
+| `GET` | `/auth/permissions` | Role → permission mappings |
 
-### Caching (3 endpoints)
+**Login example:**
 
-- `GET /cache/stats` - Statistics
-- `POST /cache/clear` - Clear cache
-- `GET /cache/backend` - Backend info
+```bash
+curl -X POST http://localhost:8000/auth/token \
+  -d "username=admin&password=admin123"
+# → { "access_token": "eyJ...", "refresh_token": "eyJ..." }
 
-**Total: 100+ endpoints**
+TOKEN="eyJ..."
+```
+
+---
+
+### 🧬 Predictions (`/api`)
+
+| Method | Endpoint | Description |
+|--------|----------|-------------|
+| `POST` | `/api/predict` | Classify a single DNA sequence |
+| `POST` | `/api/predict/batch` | Batch classify multiple sequences |
+| `POST` | `/api/upload` | Upload a FASTA/FASTQ/CSV file |
+| `GET` | `/api/results/{job_id}` | Retrieve results of an upload job |
+| `GET` | `/api/export/{job_id}` | Export results (JSON, CSV, BIOM, TSV, FASTA) |
+
+**Single prediction:**
+
+```bash
+curl -X POST http://localhost:8000/api/predict \
+  -H "Authorization: Bearer $TOKEN" \
+  -H "Content-Type: application/json" \
+  -d '{"sequence": "ATCGATCGATCGATCGATCG"}'
+```
+
+**Batch prediction:**
+
+```bash
+curl -X POST http://localhost:8000/api/predict/batch \
+  -H "Authorization: Bearer $TOKEN" \
+  -H "Content-Type: application/json" \
+  -d '{"sequences": ["ATCGATCGATCG", "GCTAGCTAGCTA"]}'
+```
+
+**Upload a FASTA file:**
+
+```bash
+curl -X POST http://localhost:8000/api/upload \
+  -H "Authorization: Bearer $TOKEN" \
+  -F "file=@demo_sequences.fasta"
+```
+
+---
+
+### 📦 Model Versioning (`/versions`)
+
+| Method | Endpoint | Description |
+|--------|----------|-------------|
+| `GET` | `/versions` | List all registered versions |
+| `GET` | `/versions/{id}` | Get version details |
+| `GET` | `/versions/current/info` | Get active version |
+| `GET` | `/versions/history` | Chronological version history |
+| `GET` | `/versions/statistics` | Registry statistics |
+| `GET` | `/versions/compare/{id1}/{id2}` | Compare two versions |
+| `POST` | `/versions/register` | Register a new model version |
+| `POST` | `/versions/{id}/activate` | Set version as active |
+| `POST` | `/versions/{id}/rollback` | Roll back to a version |
+| `POST` | `/versions/{id}/archive` | Archive a version |
+| `POST` | `/versions/{id}/deprecate` | Deprecate a version |
+
+---
+
+### 🧪 A/B Testing (`/experiments`)
+
+| Method | Endpoint | Description |
+|--------|----------|-------------|
+| `GET` | `/experiments` | List all experiments |
+| `POST` | `/experiments/create` | Create a new A/B experiment |
+| `POST` | `/experiments/{id}/start` | Start experiment |
+| `POST` | `/experiments/{id}/stop` | Stop and declare winner |
+| `POST` | `/experiments/{id}/pause` | Pause experiment |
+| `POST` | `/experiments/{id}/resume` | Resume paused experiment |
+| `GET` | `/experiments/{id}/results` | Get statistical results |
+
+---
+
+### 📊 Monitoring (`/monitoring`, `/health`, `/metrics`)
+
+| Method | Endpoint | Description |
+|--------|----------|-------------|
+| `GET` | `/health` | Basic health check |
+| `GET` | `/health/detailed` | Full component health |
+| `GET` | `/monitoring/system` | CPU, memory, disk metrics |
+| `GET` | `/monitoring/application` | Request counts, error rates |
+| `GET` | `/monitoring/dashboard` | Unified dashboard data |
+| `GET` | `/metrics` | Prometheus scrape endpoint |
+
+---
+
+### 💾 Cache (`/cache`)
+
+| Method | Endpoint | Description |
+|--------|----------|-------------|
+| `GET` | `/cache/stats` | Cache hit/miss statistics |
+| `GET` | `/cache/backend` | Redis vs in-memory info |
+| `GET` | `/cache/clear` | Clear all or pattern-matched keys |
+
+---
+
+## ☁️ AWS Deployment
+
+### Current Live Deployment
+
+| Setting | Value |
+|---------|-------|
+| Public IP | `3.107.100.245` |
+| Region | `ap-southeast-2` (Sydney) |
+| Service | AWS ECS Fargate |
+| CPU / RAM | 1 vCPU / 2 GB |
+| Docker Image | `755234501944.dkr.ecr.ap-southeast-2.amazonaws.com/deepsea-edna-app:latest` |
+| Estimated cost | ~\$22–33/month |
+
+### Deploy Your Own Instance
+
+**Prerequisites:** AWS CLI, Docker, AWS account
+
+```powershell
+# 1. Authenticate with AWS
+aws configure
+
+# 2. Deploy to ECS (creates ECR repo, builds image, sets up cluster)
+.\deploy-aws.ps1 -Stage full
+```
+
+**Manual steps summary:**
+1. Create ECR repository: `aws ecr create-repository --repository-name deepsea-edna-app`
+2. Authenticate Docker to ECR
+3. Build & push image: `docker build -t deepsea-edna . && docker push ...`
+4. Register task definition: `aws ecs register-task-definition --cli-input-json file://ecs-task-definition.json`
+5. Create ECS cluster & service with public IP enabled
+6. Open port 8000 in the security group
+
+### Cost Optimization Tips
+
+- Scale to 0 tasks when not in use
+- Use **Fargate Spot** for 60–70% savings on non-critical workloads
+- Enable **auto-scaling** based on CPU/request metrics
+- Monitor with **AWS Cost Explorer**
 
 ---
 
 ## 🧪 Testing
 
+### Run Integration Tests
+
 ```bash
-# Run integration tests
+# From repository root
 pytest backend/tests/
 
-# Run feature tests
-.\mlops\test_security.ps1
-.\mlops\test_versioning.ps1
-.\mlops\test_ab_testing.ps1
-.\mlops\test_monitoring.ps1
-.\mlops\test_cache.ps1
+# With coverage report
+pytest backend/tests/ --cov=backend --cov-report=html
+
+# Specific test file
+pytest backend/tests/test_integration.py -v
+```
+
+### Test with Demo Sequences
+
+```bash
+# Upload the included demo FASTA file
+curl -X POST http://localhost:8000/api/upload \
+  -H "Authorization: Bearer $TOKEN" \
+  -F "file=@demo_sequences.fasta"
+```
+
+The [`demo_sequences.fasta`](demo_sequences.fasta) file contains 10 synthetic sequences representing shark, whale, jellyfish, coral, fish, octopus, dolphin, sea turtle, plankton, and a mixed sample.
+
+---
+
+## ⚙️ Configuration
+
+All settings are driven by environment variables (or `backend/.env`):
+
+| Variable | Default | Description |
+|----------|---------|-------------|
+| `ENVIRONMENT` | `production` | `development` / `production` |
+| `SECRET_KEY` | *(must change)* | JWT signing secret |
+| `DATABASE_URL` | SQLite | PostgreSQL or SQLite URL |
+| `REDIS_URL` | `redis://localhost:6379/0` | Redis connection string |
+| `MODEL_DIR` | `../ml_models` | Path to model directory |
+| `DEFAULT_MODEL` | `marine_model` | Model folder name |
+| `MODEL_DEVICE` | `cuda` | `cuda` or `cpu` |
+| `MAX_SEQUENCE_LENGTH` | `1000` | Max bp per sequence |
+| `MAX_UPLOAD_SIZE` | `524288000` | Max file upload (500 MB) |
+| `LOG_LEVEL` | `INFO` | `DEBUG`, `INFO`, `WARNING`, `ERROR` |
+| `CORS_ORIGINS` | `http://localhost:5173,...` | Allowed origins |
+| `ACCESS_TOKEN_EXPIRE_MINUTES` | `30` | JWT token lifespan |
+
+---
+
+## 🔄 CI/CD Pipeline
+
+GitHub Actions workflows run automatically:
+
+| Workflow | Trigger | Action |
+|----------|---------|--------|
+| `ci-tests.yml` | Every PR / push | Run pytest suite |
+| `pr-checks.yml` | Every PR | Lint + type checks |
+| `docker-build.yml` | Push to `main` | Build & push to GHCR |
+| `deploy.yml` | Push to `main` | Deploy to AWS ECS |
+| `model-training.yml` | Manual / scheduled | Retrain model |
+| `monitoring.yml` | Scheduled | Health check pings |
+| `mlops-ci-cd.yml` | Push to `main` | Full MLOps pipeline |
+
+**Docker image available at:**
+
+```
+ghcr.io/jackstealer/deepsea-edna:latest
 ```
 
 ---
 
-## 📈 Performance
+## 🛠️ Troubleshooting
 
-- **Model Accuracy**: 94.18%
-- **Response Time**: <100ms (cached)
-- **Throughput**: 1000+ requests/second
-- **Cache Hit Rate**: 80%+ typical
-
----
-
-## 🛠️ Technology Stack
-
-**Backend:**
-
-- FastAPI 0.136+
-- PyTorch 2.0+
-- SQLAlchemy
-- Redis
-- PostgreSQL/SQLite
-
-**Security:**
-
-- JWT (python-jose)
-- OAuth2
-- Bcrypt (passlib)
-- RBAC
-
-**Monitoring:**
-
-- Prometheus
-- Grafana-ready
-- psutil
-
-**Testing:**
-
-- pytest
-- pytest-asyncio
-- httpx
-
----
-
-## 🎓 Use Cases
-
-- **Marine Biology Research** - Taxonomic classification
-- **Environmental Monitoring** - Species detection
-- **Biodiversity Studies** - Species distribution
-- **Conservation** - Endangered species tracking
-- **Academic Research** - ML model experimentation
-
----
-
-## 📋 Project Structure
-
+**Service won't start:**
+```bash
+docker logs deepsea-edna
+# or for AWS:
+aws logs tail /ecs/deepsea-edna --follow --region ap-southeast-2
 ```
-DeepSea-eDNA-AI/
-├── backend/
-│   ├── app/
-│   │   ├── api/          # API endpoints
-│   │   ├── core/         # Configuration
-│   │   ├── models/       # ML models
-│   │   └── services/     # Business logic
-│   ├── tests/            # Test suite
-│   └── training/         # Model training
-├── mlops/
-│   ├── advanced_security.py
-│   ├── ab_testing.py
-│   ├── model_versioning.py
-│   ├── monitoring.py
-│   ├── cache_manager.py
-│   ├── data_validation.py
-│   ├── export_formats.py
-│   └── test_*.ps1       # Test scripts
-├── ml_models/
-│   └── marine_model/    # Trained model
-├── docs/                # Documentation
-└── data/                # Training data
+
+**Model not found error:**
+```bash
+ls ml_models/marine_model/
+# Must contain: best_model.pth, model_config.json, taxonomy_map.json
 ```
+
+**High memory usage:**
+```
+The model requires a minimum of 2 GB RAM.
+Increase Docker memory limit or ECS task memory setting.
+```
+
+**Redis not available:**
+```
+The CacheManager automatically falls back to in-memory caching
+if Redis is unreachable. No action needed for development.
+```
+
+**401 Unauthorized:**
+```bash
+# Re-authenticate and get a fresh token
+curl -X POST http://localhost:8000/auth/token \
+  -d "username=admin&password=admin123"
+```
+
+---
+
+## 🌟 Use Cases
+
+| Domain | Application |
+|--------|------------|
+| Marine Biology Research | High-throughput taxonomic classification |
+| Environmental Monitoring | Non-invasive species presence detection |
+| Biodiversity Studies | Species distribution and richness mapping |
+| Conservation Biology | Endangered/invasive species surveillance |
+| Fisheries Management | Stock identification and assessment |
+| Academic Research | ML model experimentation on DNA data |
+| Citizen Science | Community-driven marine monitoring programs |
 
 ---
 
 ## 🤝 Contributing
 
-Contributions welcome! Please read our contributing guidelines.
+Contributions are welcome!
 
 1. Fork the repository
-2. Create feature branch (`git checkout -b feature/amazing`)
-3. Commit changes (`git commit -m 'Add amazing feature'`)
-4. Push to branch (`git push origin feature/amazing`)
-5. Open Pull Request
+2. Create a feature branch: `git checkout -b feature/amazing-feature`
+3. Commit your changes: `git commit -m 'feat: Add amazing feature'`
+4. Push to branch: `git push origin feature/amazing-feature`
+5. Open a Pull Request
+
+Please ensure:
+- All tests pass (`pytest backend/tests/`)
+- Code follows existing style
+- New features include tests
 
 ---
 
 ## 📄 License
 
-MIT License - see [LICENSE](LICENSE) file for details
+This project is licensed under the **MIT License** — see the [LICENSE](LICENSE) file for details.
 
 ---
 
-## 🌟 Features Highlight
+## 📞 Links
 
-### Security
-
-- Enterprise-grade JWT authentication
-- 4 user roles (Admin, Scientist, Viewer, API User)
-- 13 fine-grained permissions
-- Token refresh & revocation
-
-### MLOps
-
-- Complete model lifecycle management
-- A/B testing with statistical analysis
-- Automated version tracking
-- Rollback capabilities
-
-### Monitoring
-
-- Real-time system metrics
-- Prometheus integration
-- Custom dashboards
-- Health checks
-
-### Data
-
-- Multiple file formats (FASTA, FASTQ, CSV)
-- Batch processing
-- Quality validation
-- Export to BIOM, JSON, CSV
+| Resource | URL |
+|----------|-----|
+| Live API | http://3.107.100.245:8000 |
+| Swagger UI | http://3.107.100.245:8000/api/docs |
+| ReDoc | http://3.107.100.245:8000/api/redoc |
+| GitHub | [jackstealer/DeepSea-eDNA](https://github.com/jackstealer/DeepSea-eDNA) |
+| Docker Image | [ghcr.io/jackstealer/deepsea-edna](https://github.com/jackstealer/DeepSea-eDNA/pkgs/container/deepsea-edna) |
+| Issues | [GitHub Issues](https://github.com/jackstealer/DeepSea-eDNA/issues) |
 
 ---
 
-## 🎯 Roadmap
+<div align="center">
 
-✅ All 15 planned features complete!
+**Built with ❤️ for the marine biology research community**
 
-**Future enhancements:**
+*Last updated: November 2026*
 
-- Kubernetes deployment configs
-- Grafana dashboards
-- Real-time streaming predictions
-- Multi-model ensemble support
-
----
-
-## 📞 Contact & Support
-
-- **GitHub**: [jackstealer/DeepSea-eDNA](https://github.com/jackstealer/DeepSea-eDNA)
-- **Issues**: GitHub Issues
-- **Docs**: `/api/docs` endpoint
-
----
-
-## 🏆 Achievements
-
-✅ **15/15 Features Complete**  
-✅ **100+ API Endpoints**  
-✅ **Enterprise Security**  
-✅ **Production Ready**  
-✅ **Fully Documented**  
-✅ **Comprehensively Tested**
-
----
-
-**Status: Production Ready** 🚀
-
-Built with ❤️ for the marine biology research community
+</div>
