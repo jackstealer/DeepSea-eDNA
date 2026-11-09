@@ -1,0 +1,29 @@
+{
+  "family": "deepsea-edna-task",
+  "networkMode": "awsvpc",
+  "requiresCompatibilities": ["FARGATE"],
+  "cpu": "1024",
+  "memory": "2048",
+  "executionRoleArn": "arn:aws:iam::YOUR_ACCOUNT_ID:role/ecsTaskExecutionRole",
+  "containerDefinitions": [{
+    "name": "deepsea-edna",
+    "image": "YOUR_ECR_URI:latest",
+    "portMappings": [{"containerPort": 8000, "protocol": "tcp"}],
+    "environment": [
+      {"name": "ENVIRONMENT", "value": "production"},
+      {"name": "DATABASE_URL", "value": "postgresql://USER:PASS@RDS_ENDPOINT:5432/deepsea"},
+      {"name": "REDIS_URL", "value": "redis://REDIS_ENDPOINT:6379/0"},
+      {"name": "SECRET_KEY", "value": "CHANGE_THIS_SECRET_KEY"},
+      {"name": "MODEL_DIR", "value": "/app/ml_models"}
+    ],
+    "logConfiguration": {
+      "logDriver": "awslogs",
+      "options": {
+        "awslogs-create-group": "true",
+        "awslogs-group": "/ecs/deepsea-edna",
+        "awslogs-region": "us-east-1",
+        "awslogs-stream-prefix": "ecs"
+      }
+    }
+  }]
+}
