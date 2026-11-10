@@ -1,4 +1,5 @@
 import logging
+import os
 import sys
 from pathlib import Path
 from contextlib import asynccontextmanager
@@ -65,6 +66,30 @@ async def lifespan(app: FastAPI):
     app.state.ab_test_manager = ab_test_manager
     logger.info(f"A/B test manager initialized: {len(ab_test_manager.experiments)} experiments")
     
+    # Download model from S3 if MODEL_S3_BUCKET is set and model files are missing
+    s3_bucket = os.environ.get("MODEL_S3_BUCKET", "")
+    model_dir = Path(settings.MODEL_DIR)
+    model_name = settings.DEFAULT_MODEL
+    model_path = model_dir / model_name
+    weights_file = model_path / "best_model.pth"
+
+    if s3_bucket and not weights_file.exists():
+        logger.info(f"Model weights not found locally. Downloading from S3: s3://{s3_bucket}/{model_name}/")
+        try:
+            import boto3
+            s3 = boto3.client("s3", region_name=os.environ.get("AWS_DEFAULT_REGION", "ap-southeast-2"))
+            model_path.mkdir(parents=True, exist_ok=True)
+            for filename in ["best_model.pth", "model_config.json", "taxonomy_map.json"]:
+                local_file = model_path / filename
+                if not local_file.exists():
+                    logger.info(f"  Downloading {filename}...")
+                    s3.download_file(s3_bucket, f"{model_name}/{filename}", str(local_file))
+                    logger.info(f"  ✅ {filename} downloaded ({local_file.stat().st_size / 1024 / 1024:.1f} MB)")
+            logger.info("All model files downloaded from S3 successfully.")
+        except Exception as e:
+            logger.error(f"Failed to download model from S3: {e}")
+            raise RuntimeError(f"Cannot load model: S3 download failed — {e}")
+
     # Initialize model loader
     model_loader = ModelLoader()
     await model_loader.load_default_model()
