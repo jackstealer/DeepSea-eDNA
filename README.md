@@ -1,4 +1,4 @@
-﻿# 🌊 DeepSea eDNA AI
+# 🌊 DeepSea eDNA AI
 
 <div align="center">
 

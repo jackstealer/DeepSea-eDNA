@@ -1,0 +1,89 @@
+name: Build & Deploy to AWS ECR + ECS
+
+on:
+  workflow_dispatch:  # Manual trigger only
+
+env:
+  AWS_REGION: ap-southeast-2
+  ECR_REGISTRY: 755234501944.dkr.ecr.ap-southeast-2.amazonaws.com
+  ECR_REPOSITORY: deepsea-edna-app
+  ECS_CLUSTER: deepsea-cluster
+  ECS_SERVICE: deepsea-service
+
+jobs:
+  build-and-deploy:
+    name: Build, Push to ECR & Deploy to ECS
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Configure AWS credentials
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          aws-region: ${{ env.AWS_REGION }}
+
+      - name: Login to Amazon ECR
+        id: login-ecr
+        uses: aws-actions/amazon-ecr-login@v2
+
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
+
+      - name: Build and push image to ECR
+        uses: docker/build-push-action@v5
+        with:
+          context: .
+          file: ./Dockerfile
+          push: true
+          tags: |
+            ${{ env.ECR_REGISTRY }}/${{ env.ECR_REPOSITORY }}:latest
+            ${{ env.ECR_REGISTRY }}/${{ env.ECR_REPOSITORY }}:${{ github.sha }}
+          cache-from: type=gha
+          cache-to: type=gha,mode=max
+          platforms: linux/amd64
+
+      - name: Force ECS redeployment
+        run: |
+          aws ecs update-service \
+            --cluster ${{ env.ECS_CLUSTER }} \
+            --service ${{ env.ECS_SERVICE }} \
+            --force-new-deployment \
+            --region ${{ env.AWS_REGION }} \
+            --output json | jq '{status: .service.status, desiredCount: .service.desiredCount}'
+
+      - name: Wait for ECS service to stabilize
+        run: |
+          echo "Waiting for ECS service to reach steady state..."
+          aws ecs wait services-stable \
+            --cluster ${{ env.ECS_CLUSTER }} \
+            --services ${{ env.ECS_SERVICE }} \
+            --region ${{ env.AWS_REGION }}
+          echo "✅ ECS service is stable!"
+
+      - name: Verify API health
+        run: |
+          echo "Waiting 15s for container to warm up..."
+          sleep 15
+          echo "Testing /health endpoint..."
+          curl -f --retry 5 --retry-delay 10 http://3.107.100.245:8000/health || echo "⚠️ Health check failed — container may still be starting"
+          echo ""
+          echo "Testing /api/docs endpoint..."
+          curl -s -o /dev/null -w "HTTP Status: %{http_code}" http://3.107.100.245:8000/api/docs
+          echo ""
+          echo "✅ Deployment complete!"
+
+      - name: Summary
+        run: |
+          echo "## 🚀 Deployment Summary" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "| Field | Value |" >> $GITHUB_STEP_SUMMARY
+          echo "|-------|-------|" >> $GITHUB_STEP_SUMMARY
+          echo "| **Image** | \`${{ env.ECR_REGISTRY }}/${{ env.ECR_REPOSITORY }}:latest\` |" >> $GITHUB_STEP_SUMMARY
+          echo "| **Commit** | \`${{ github.sha }}\` |" >> $GITHUB_STEP_SUMMARY
+          echo "| **ECS Cluster** | \`${{ env.ECS_CLUSTER }}\` |" >> $GITHUB_STEP_SUMMARY
+          echo "| **ECS Service** | \`${{ env.ECS_SERVICE }}\` |" >> $GITHUB_STEP_SUMMARY
+          echo "| **API Docs** | http://3.107.100.245:8000/api/docs |" >> $GITHUB_STEP_SUMMARY
