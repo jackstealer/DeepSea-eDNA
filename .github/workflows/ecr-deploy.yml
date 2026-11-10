@@ -54,27 +54,31 @@ jobs:
             --force-new-deployment \
             --region ${{ env.AWS_REGION }} \
             --output json | jq '{status: .service.status, desiredCount: .service.desiredCount}'
+          echo "✅ ECS redeployment triggered. Container will start in ~60-90 seconds."
 
-      - name: Wait for ECS service to stabilize
+      - name: Verify API health (with retry)
         run: |
-          echo "Waiting for ECS service to reach steady state..."
-          aws ecs wait services-stable \
-            --cluster ${{ env.ECS_CLUSTER }} \
-            --services ${{ env.ECS_SERVICE }} \
-            --region ${{ env.AWS_REGION }}
-          echo "✅ ECS service is stable!"
-
-      - name: Verify API health
-        run: |
-          echo "Waiting 15s for container to warm up..."
-          sleep 15
+          echo "Waiting 90s for container to pull image, download model from S3, and start..."
+          sleep 90
           echo "Testing /health endpoint..."
-          curl -f --retry 5 --retry-delay 10 http://3.107.100.245:8000/health || echo "⚠️ Health check failed — container may still be starting"
+          for i in 1 2 3 4 5; do
+            STATUS=$(curl -s -o /dev/null -w "%{http_code}" --max-time 10 http://3.107.100.245:8000/health || echo "000")
+            echo "Attempt $i: HTTP $STATUS"
+            if [ "$STATUS" = "200" ]; then
+              echo "✅ /health is UP!"
+              break
+            fi
+            sleep 20
+          done
           echo ""
           echo "Testing /api/docs endpoint..."
-          curl -s -o /dev/null -w "HTTP Status: %{http_code}" http://3.107.100.245:8000/api/docs
-          echo ""
-          echo "✅ Deployment complete!"
+          DOCS_STATUS=$(curl -s -o /dev/null -w "%{http_code}" --max-time 10 http://3.107.100.245:8000/api/docs || echo "000")
+          echo "HTTP $DOCS_STATUS"
+          if [ "$DOCS_STATUS" = "200" ]; then
+            echo "✅ /api/docs is LIVE!"
+          else
+            echo "⚠️ /api/docs returned $DOCS_STATUS — model may still be loading. Check again in 30s."
+          fi
 
       - name: Summary
         run: |

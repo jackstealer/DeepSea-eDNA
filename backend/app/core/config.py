@@ -32,7 +32,7 @@ class Settings(BaseSettings):
     
     # Deep Learning
     DEFAULT_MODEL: str = "marine_model"  # Use the trained marine model
-    MODEL_DEVICE: str = "cuda"  # Use GPU if available, fallback to CPU
+    MODEL_DEVICE: str = "cpu"  # ECS Fargate is CPU-only; set to "cuda" for GPU instances
     BATCH_SIZE: int = 32
     MAX_SEQUENCE_LENGTH: int = 1000
     
