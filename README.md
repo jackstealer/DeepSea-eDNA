@@ -13,7 +13,7 @@
 
 🎯 **94.18% Accuracy** · 🚀 **100+ API Endpoints** · 🐳 **Docker Ready** · ☁️ **AWS Deployed**
 
-[Live API](http://3.107.100.245:8000) · [Interactive Docs](http://3.107.100.245:8000/api/docs) · [Health Check](http://3.107.100.245:8000/health)
+[Live API](http://15.135.222.222:8000) · [Interactive Docs](http://15.135.222.222:8000/api/docs) · [Health Check](http://15.135.222.222:8000/health)
 
 </div>
 
@@ -83,10 +83,10 @@
 
 ```bash
 # Health check
-curl http://3.107.100.245:8000/health
+curl http://15.135.222.222:8000/health
 
 # Interactive Swagger UI
-open http://3.107.100.245:8000/api/docs
+open http://15.135.222.222:8000/api/docs
 ```
 
 ### Option 2 — Docker (Recommended)
@@ -370,7 +370,7 @@ The model classifies 8 marine taxonomic groups from COI/ITS/16S barcoding sequen
 
 ### Base URL
 
-- **Live:** `http://3.107.100.245:8000`
+- **Live:** `http://15.135.222.222:8000`
 - **Local:** `http://localhost:8000`
 - **Swagger UI:** `/api/docs`
 - **ReDoc:** `/api/redoc`
@@ -511,7 +511,7 @@ curl -X POST http://localhost:8000/api/upload \
 
 | Setting | Value |
 |---------|-------|
-| Public IP | `3.107.100.245` |
+| Public IP | `15.135.222.222` |
 | Region | `ap-southeast-2` (Sydney) |
 | Service | AWS ECS Fargate |
 | CPU / RAM | 1 vCPU / 2 GB |
@@ -695,9 +695,9 @@ This project is licensed under the **MIT License** — see the [LICENSE](LICENSE
 
 | Resource | URL |
 |----------|-----|
-| Live API | http://3.107.100.245:8000 |
-| Swagger UI | http://3.107.100.245:8000/api/docs |
-| ReDoc | http://3.107.100.245:8000/api/redoc |
+| Live API | http://15.135.222.222:8000 |
+| Swagger UI | http://15.135.222.222:8000/api/docs |
+| ReDoc | http://15.135.222.222:8000/api/redoc |
 | GitHub | [jackstealer/DeepSea-eDNA](https://github.com/jackstealer/DeepSea-eDNA) |
 | Docker Image | [ghcr.io/jackstealer/deepsea-edna](https://github.com/jackstealer/DeepSea-eDNA/pkgs/container/deepsea-edna) |
 | Issues | [GitHub Issues](https://github.com/jackstealer/DeepSea-eDNA/issues) |
