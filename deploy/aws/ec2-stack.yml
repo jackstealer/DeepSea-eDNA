@@ -1,9 +1,9 @@
 AWSTemplateFormatVersion: "2010-09-09"
 Description: >-
   DeepSea eDNA AI - basic AWS deployment. One EC2 instance runs the docker compose stack
-  (PostgreSQL, Redis, MLflow, FastAPI, nginx frontend) built from the GitHub repository.
-  Two CloudFront distributions give free HTTPS URLs (app and API, needed for Google sign-in);
-  the instance only accepts traffic from CloudFront. Secrets come from SSM Parameter Store.
+  (PostgreSQL, Redis, MLflow, FastAPI, nginx frontend) built from the GitHub repository,
+  behind Caddy with automatic Let's Encrypt HTTPS on sslip.io hostnames derived from the
+  Elastic IP (no domain or CloudFront needed). Secrets come from SSM Parameter Store.
   Deleting the stack removes everything, including the instance disk and its data.
 
 Metadata:
@@ -12,7 +12,7 @@ Metadata:
   AWS::CloudFormation::Interface:
     ParameterGroups:
       - Label: { default: Compute and network }
-        Parameters: [InstanceType, VpcId, SubnetId, CloudFrontPrefixListId, LatestAmiId]
+        Parameters: [InstanceType, VpcId, SubnetId, LatestAmiId]
       - Label: { default: Application }
         Parameters: [RepoUrl, RepoBranch, ParameterPrefix]
 
@@ -28,10 +28,6 @@ Parameters:
   SubnetId:
     Type: AWS::EC2::Subnet::Id
     Description: Public subnet in VpcId (e.g. a default-VPC subnet) for the instance.
-  CloudFrontPrefixListId:
-    Type: String
-    AllowedPattern: ^pl-[0-9a-f]+$
-    Description: Managed prefix list com.amazonaws.global.cloudfront.origin-facing in this region.
   LatestAmiId:
     Type: AWS::SSM::Parameter::Value<AWS::EC2::Image::Id>
     Default: /aws/service/ami-amazon-linux-latest/al2023-ami-kernel-default-x86_64
@@ -86,23 +82,28 @@ Resources:
     Type: AWS::EC2::SecurityGroup
     Metadata:
       com.aws.cloudformation.Context:
-        why: Only CloudFront reaches the frontend (3000) and API (8000). One range rule because the CloudFront prefix list counts as ~55 of the 60 rules a security group allows.
-        must: Never open these ports to 0.0.0.0/0; MLflow (5000) is bound to 127.0.0.1 on the instance.
+        why: Public web ports only. Caddy serves HTTPS on 443 and needs 80 for Let's Encrypt challenges and HTTP-to-HTTPS redirects.
+        must: Never open other ports; frontend (3000), API (8000) and MLflow (5000) stay bound to 127.0.0.1.
     Properties:
-      GroupDescription: DeepSea eDNA - HTTP from CloudFront only
+      GroupDescription: DeepSea eDNA - public HTTP/HTTPS (Caddy)
       VpcId: !Ref VpcId
       SecurityGroupIngress:
         - IpProtocol: tcp
-          FromPort: 3000
-          ToPort: 8000
-          SourcePrefixListId: !Ref CloudFrontPrefixListId
-          Description: CloudFront to frontend (3000) and API (8000)
+          FromPort: 443
+          ToPort: 443
+          CidrIp: 0.0.0.0/0
+          Description: HTTPS
+        - IpProtocol: tcp
+          FromPort: 80
+          ToPort: 80
+          CidrIp: 0.0.0.0/0
+          Description: HTTP (ACME challenge and redirect to HTTPS)
 
   ElasticIp:
     Type: AWS::EC2::EIP
     Metadata:
       com.aws.cloudformation.Context:
-        why: Stable public IP; CloudFront origins use its EC2 public DNS name, which never changes for the stack's lifetime.
+        why: Stable public IP; the sslip.io hostnames (and so the HTTPS certificates and OAuth redirect URIs) are derived from it.
     Properties:
       Domain: vpc
 
@@ -121,58 +122,6 @@ Resources:
     Properties:
       AllocationId: !GetAtt ElasticIp.AllocationId
       NetworkInterfaceId: !Ref AppNetworkInterface
-
-  WebDistribution:
-    Type: AWS::CloudFront::Distribution
-    Metadata:
-      com.aws.cloudformation.Context:
-        why: HTTPS URL for the React app (nginx on port 3000); static assets cached at the edge.
-    Properties:
-      DistributionConfig:
-        Enabled: true
-        Comment: !Sub ${AWS::StackName} web app
-        PriceClass: PriceClass_All
-        HttpVersion: http2and3
-        Origins:
-          - Id: web
-            DomainName: !Join ["", ["ec2-", !Join ["-", !Split [".", !Ref ElasticIp]], ".", !Ref "AWS::Region", ".compute.amazonaws.com"]]
-            CustomOriginConfig:
-              HTTPPort: 3000
-              OriginProtocolPolicy: http-only
-        DefaultCacheBehavior:
-          TargetOriginId: web
-          ViewerProtocolPolicy: redirect-to-https
-          CachePolicyId: 658327ea-f89d-4fab-a63d-7e88639e58f6  # Managed-CachingOptimized
-          AllowedMethods: [GET, HEAD]
-          Compress: true
-
-  ApiDistribution:
-    Type: AWS::CloudFront::Distribution
-    Metadata:
-      com.aws.cloudformation.Context:
-        why: HTTPS URL for the FastAPI backend (port 8000). No caching; all viewer headers (incl. Authorization) plus CloudFront-Viewer-Address are forwarded.
-        must: Keep caching disabled; responses are per-user.
-    Properties:
-      DistributionConfig:
-        Enabled: true
-        Comment: !Sub ${AWS::StackName} API
-        PriceClass: PriceClass_All
-        HttpVersion: http2and3
-        Origins:
-          - Id: api
-            DomainName: !Join ["", ["ec2-", !Join ["-", !Split [".", !Ref ElasticIp]], ".", !Ref "AWS::Region", ".compute.amazonaws.com"]]
-            CustomOriginConfig:
-              HTTPPort: 8000
-              OriginProtocolPolicy: http-only
-              OriginReadTimeout: 60
-        DefaultCacheBehavior:
-          TargetOriginId: api
-          ViewerProtocolPolicy: redirect-to-https
-          CachePolicyId: 4135ea2d-6df8-44a3-9df3-4b5a84be39ad  # Managed-CachingDisabled
-          OriginRequestPolicyId: 33f36d7e-f396-46d9-90e0-52428a34d9dc  # Managed-AllViewerAndCloudFrontHeaders-2022-06
-          AllowedMethods: [GET, HEAD, OPTIONS, PUT, PATCH, POST, DELETE]
-          CachedMethods: [GET, HEAD]
-          Compress: true
 
   AppLaunchTemplate:
     Type: AWS::EC2::LaunchTemplate
@@ -197,7 +146,7 @@ Resources:
         Timeout: PT50M  # image builds on a small instance take a while
     Metadata:
       com.aws.cloudformation.Context:
-        why: Builds and runs the compose stack; signals CloudFormation only once the API and frontend are healthy, so CREATE_COMPLETE means the app works.
+        why: Builds and runs the compose stack; signals CloudFormation only once the app and API answer over HTTPS, so CREATE_COMPLETE means the app works.
         must: Secrets are read from SSM at boot and never placed in user data.
     Properties:
       ImageId: !Ref LatestAmiId
@@ -213,97 +162,108 @@ Resources:
         - Key: Name
           Value: !Sub ${AWS::StackName}-app
       UserData:
-        Fn::Base64: !Sub |
-          #!/bin/bash
-          set -euo pipefail
-          exec > >(tee -a /var/log/deepsea-bootstrap.log) 2>&1
-          signal() { /opt/aws/bin/cfn-signal -e "$1" --stack ${AWS::StackName} --resource AppInstance --region ${AWS::Region} || true; }
-          trap 'signal 1' ERR
+        Fn::Base64:
+          Fn::Sub:
+            - |
+              #!/bin/bash
+              set -euo pipefail
+              exec > >(tee -a /var/log/deepsea-bootstrap.log) 2>&1
+              signal() { /opt/aws/bin/cfn-signal -e "$1" --stack ${AWS::StackName} --resource AppInstance --region ${AWS::Region} || true; }
+              trap 'signal 1' ERR
 
-          echo "== swap (headroom for PyTorch + MLflow + PostgreSQL on a small instance)"
-          if [ ! -f /swapfile ]; then
-            fallocate -l 4G /swapfile && chmod 600 /swapfile && mkswap /swapfile
-            echo '/swapfile swap swap defaults 0 0' >> /etc/fstab
-          fi
-          swapon -a
+              echo "== swap (headroom for PyTorch + MLflow + PostgreSQL on a small instance)"
+              if [ ! -f /swapfile ]; then
+                fallocate -l 4G /swapfile && chmod 600 /swapfile && mkswap /swapfile
+                echo '/swapfile swap swap defaults 0 0' >> /etc/fstab
+              fi
+              swapon -a
 
-          echo "== docker"
-          dnf install -y docker git aws-cfn-bootstrap
-          systemctl enable --now docker
-          mkdir -p /usr/local/lib/docker/cli-plugins
-          curl -fsSL -o /usr/local/lib/docker/cli-plugins/docker-compose https://github.com/docker/compose/releases/download/v2.32.4/docker-compose-linux-x86_64
-          curl -fsSL -o /usr/local/lib/docker/cli-plugins/docker-buildx https://github.com/docker/buildx/releases/download/v0.19.3/buildx-v0.19.3.linux-amd64
-          chmod +x /usr/local/lib/docker/cli-plugins/*
-          docker compose version
+              echo "== docker"
+              dnf install -y docker git aws-cfn-bootstrap
+              systemctl enable --now docker
+              mkdir -p /usr/local/lib/docker/cli-plugins
+              curl -fsSL -o /usr/local/lib/docker/cli-plugins/docker-compose https://github.com/docker/compose/releases/download/v2.32.4/docker-compose-linux-x86_64
+              curl -fsSL -o /usr/local/lib/docker/cli-plugins/docker-buildx https://github.com/docker/buildx/releases/download/v0.19.3/buildx-v0.19.3.linux-amd64
+              chmod +x /usr/local/lib/docker/cli-plugins/*
+              docker compose version
 
-          echo "== application"
-          rm -rf /opt/deepsea
-          git clone --depth 1 --branch ${RepoBranch} ${RepoUrl} /opt/deepsea
-          cd /opt/deepsea
+              echo "== application"
+              rm -rf /opt/deepsea
+              git clone --depth 1 --branch ${RepoBranch} ${RepoUrl} /opt/deepsea
+              cd /opt/deepsea
 
-          # .env from the template + SSM secrets + the CloudFront URLs (written by python: values may contain any character)
-          export SSM_PREFIX='${ParameterPrefix}' AWS_REGION='${AWS::Region}'
-          export FRONTEND='https://${WebDistribution.DomainName}' BACKEND='https://${ApiDistribution.DomainName}'
-          python3 - <<'PY'
-          import os, re, subprocess
-          def param(name, required=True):
-              cmd = ["aws", "ssm", "get-parameter", "--region", os.environ["AWS_REGION"], "--with-decryption",
-                     "--name", os.environ["SSM_PREFIX"] + "/" + name, "--query", "Parameter.Value", "--output", "text"]
-              result = subprocess.run(cmd, capture_output=True, text=True)
-              if result.returncode != 0:
-                  if required:
-                      raise SystemExit("missing SSM parameter " + name)
-                  return ""
-              return result.stdout.strip()
-          values = {
-              "SECRET_KEY": param("SECRET_KEY"),
-              "POSTGRES_PASSWORD": param("POSTGRES_PASSWORD"),
-              "ADMIN_EMAILS": param("ADMIN_EMAILS"),
-              "GOOGLE_CLIENT_ID": param("GOOGLE_CLIENT_ID", False),
-              "GOOGLE_CLIENT_SECRET": param("GOOGLE_CLIENT_SECRET", False),
-              "GITHUB_CLIENT_ID": param("GITHUB_CLIENT_ID", False),
-              "GITHUB_CLIENT_SECRET": param("GITHUB_CLIENT_SECRET", False),
-              "FRONTEND_URL": os.environ["FRONTEND"],
-              "BACKEND_PUBLIC_URL": os.environ["BACKEND"],
-              "CORS_ORIGINS": os.environ["FRONTEND"],
-              "VITE_API_BASE_URL": os.environ["BACKEND"],
-          }
-          text = open(".env.example").read()
-          for key, value in values.items():
-              line = key + "=" + value
-              text, n = re.subn("^" + key + "=.*$", lambda m: line, text, flags=re.M)
-              if n == 0:
-                  text += "\n" + line + "\n"
-          open(".env", "w").write(text)
-          os.chmod(".env", 0o600)
-          PY
+              # .env from the template + SSM secrets + public URLs (written by python: values may contain any character)
+              export SSM_PREFIX='${ParameterPrefix}' AWS_REGION='${AWS::Region}'
+              export APP_HOST_NAME='${AppHost}' API_HOST_NAME='${ApiHost}'
+              python3 - <<'PY'
+              import os, re, subprocess
+              def param(name, required=True):
+                  cmd = ["aws", "ssm", "get-parameter", "--region", os.environ["AWS_REGION"], "--with-decryption",
+                         "--name", os.environ["SSM_PREFIX"] + "/" + name, "--query", "Parameter.Value", "--output", "text"]
+                  result = subprocess.run(cmd, capture_output=True, text=True)
+                  if result.returncode != 0:
+                      if required:
+                          raise SystemExit("missing SSM parameter " + name)
+                      return ""
+                  return result.stdout.strip()
+              frontend = "https://" + os.environ["APP_HOST_NAME"]
+              backend = "https://" + os.environ["API_HOST_NAME"]
+              values = {
+                  "SECRET_KEY": param("SECRET_KEY"),
+                  "POSTGRES_PASSWORD": param("POSTGRES_PASSWORD"),
+                  "ADMIN_EMAILS": param("ADMIN_EMAILS"),
+                  "GOOGLE_CLIENT_ID": param("GOOGLE_CLIENT_ID", False),
+                  "GOOGLE_CLIENT_SECRET": param("GOOGLE_CLIENT_SECRET", False),
+                  "GITHUB_CLIENT_ID": param("GITHUB_CLIENT_ID", False),
+                  "GITHUB_CLIENT_SECRET": param("GITHUB_CLIENT_SECRET", False),
+                  "APP_HOST": os.environ["APP_HOST_NAME"],
+                  "API_HOST": os.environ["API_HOST_NAME"],
+                  "FRONTEND_URL": frontend,
+                  "BACKEND_PUBLIC_URL": backend,
+                  "CORS_ORIGINS": frontend,
+                  "VITE_API_BASE_URL": backend,
+              }
+              text = open(".env.example").read()
+              for key, value in values.items():
+                  line = key + "=" + value
+                  text, n = re.subn("^" + key + "=.*$", lambda m: line, text, flags=re.M)
+                  if n == 0:
+                      text += "\n" + line + "\n"
+              open(".env", "w").write(text)
+              os.chmod(".env", 0o600)
+              PY
 
-          echo "== build and start (first build takes 10-20 minutes)"
-          docker compose -f docker-compose.yml -f deploy/aws/docker-compose.aws.yml up -d --build
+              echo "== build and start (first build takes 10-20 minutes)"
+              docker compose -f docker-compose.yml -f deploy/aws/docker-compose.aws.yml up -d --build
 
-          for attempt in $(seq 1 90); do
-            if curl -sf http://localhost:8000/health && curl -sf http://localhost:3000/healthz; then
-              echo "== healthy"; signal 0; exit 0
-            fi
-            sleep 10
-          done
-          docker compose -f docker-compose.yml -f deploy/aws/docker-compose.aws.yml ps -a
-          docker compose -f docker-compose.yml -f deploy/aws/docker-compose.aws.yml logs --tail=80
-          signal 1
+              for attempt in $(seq 1 90); do
+                if curl -sf --max-time 10 https://${ApiHost}/health && curl -sf --max-time 10 -o /dev/null https://${AppHost}/login; then
+                  echo "== healthy over HTTPS"; signal 0; exit 0
+                fi
+                sleep 10
+              done
+              docker compose -f docker-compose.yml -f deploy/aws/docker-compose.aws.yml ps -a
+              docker compose -f docker-compose.yml -f deploy/aws/docker-compose.aws.yml logs --tail=80
+              signal 1
+            - AppHost: !Join [".", ["app", !Join ["-", !Split [".", !Ref ElasticIp]], "sslip.io"]]
+              ApiHost: !Join [".", ["api", !Join ["-", !Split [".", !Ref ElasticIp]], "sslip.io"]]
 
 Outputs:
   AppUrl:
     Description: Open the application here
-    Value: !Sub https://${WebDistribution.DomainName}
+    Value: !Join ["", ["https://app.", !Join ["-", !Split [".", !Ref ElasticIp]], ".sslip.io"]]
   ApiUrl:
     Description: Backend API (docs at /api/docs)
-    Value: !Sub https://${ApiDistribution.DomainName}
+    Value: !Join ["", ["https://api.", !Join ["-", !Split [".", !Ref ElasticIp]], ".sslip.io"]]
   GoogleRedirectUri:
     Description: Add this to the Google OAuth client's Authorized redirect URIs
-    Value: !Sub https://${ApiDistribution.DomainName}/auth/oauth/google/callback
+    Value: !Join ["", ["https://api.", !Join ["-", !Split [".", !Ref ElasticIp]], ".sslip.io/auth/oauth/google/callback"]]
   GitHubCallbackUrl:
     Description: Authorization callback URL for a GitHub OAuth App
-    Value: !Sub https://${ApiDistribution.DomainName}/auth/oauth/github/callback
+    Value: !Join ["", ["https://api.", !Join ["-", !Split [".", !Ref ElasticIp]], ".sslip.io/auth/oauth/github/callback"]]
+  PublicIp:
+    Description: Elastic IP of the instance
+    Value: !Ref ElasticIp
   InstanceId:
     Description: EC2 instance (connect with Session Manager; no SSH)
     Value: !Ref AppInstance

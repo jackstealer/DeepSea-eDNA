@@ -1,6 +1,34 @@
 # AWS EC2 overrides, used together with the main file:
 #   docker compose -f docker-compose.yml -f deploy/aws/docker-compose.aws.yml up -d --build
+# Only Caddy (80/443, automatic HTTPS) is reachable from outside; everything else is bound to localhost.
 services:
+  caddy:
+    image: caddy:2.8.4-alpine
+    restart: unless-stopped
+    ports:
+      - "80:80"
+      - "443:443"
+    environment:
+      APP_HOST: ${APP_HOST:?Set APP_HOST in .env}
+      API_HOST: ${API_HOST:?Set API_HOST in .env}
+    volumes:
+      - ./deploy/aws/Caddyfile:/etc/caddy/Caddyfile:ro
+      - caddydata:/data  # certificates survive restarts (avoids Let's Encrypt rate limits)
+    depends_on:
+      - frontend
+      - backend
+
+  frontend:
+    ports: !override
+      - "127.0.0.1:3000:80"
+
+  backend:
+    ports: !override
+      - "127.0.0.1:8000:8000"
+    environment:
+      # Only Caddy can reach the backend, so its X-Real-IP header is the real client IP
+      TRUSTED_PROXY_HEADER: x-real-ip
+
   mlflow:
     # MLflow has no authentication: reachable only on the instance itself
     # (use an SSM port-forwarding session to open the UI from your machine)
@@ -16,7 +44,5 @@ services:
       - --artifacts-destination=/mlflow/artifacts
       - --allowed-hosts=mlflow:5000,localhost:5000,127.0.0.1:5000
 
-  backend:
-    environment:
-      # Only CloudFront can reach the instance, so its viewer-address header is the real client IP
-      TRUSTED_PROXY_HEADER: cloudfront-viewer-address
+volumes:
+  caddydata:

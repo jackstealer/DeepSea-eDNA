@@ -38,14 +38,16 @@ class RateLimiter:
 
 def client_ip(request: Request) -> str:
     """
-    Client address for rate limiting. Behind CloudFront every request comes from an edge IP,
-    so deployments that only accept CloudFront traffic set TRUSTED_PROXY_HEADER to
-    "cloudfront-viewer-address" (set by CloudFront itself as "<ip>:<port>"; viewers can't forge it).
+    Client address for rate limiting. Behind a reverse proxy every request comes from the proxy,
+    so deployments where only the proxy can reach the API set TRUSTED_PROXY_HEADER to the header
+    it writes: "x-real-ip" (Caddy/nginx) or "cloudfront-viewer-address" (CloudFront, "<ip>:<port>").
     """
     from app.core.config import settings
 
-    if settings.TRUSTED_PROXY_HEADER:
-        value = request.headers.get(settings.TRUSTED_PROXY_HEADER)
-        if value:
-            return value.rsplit(":", 1)[0].strip("[]")
+    header = settings.TRUSTED_PROXY_HEADER.lower()
+    value = request.headers.get(header) if header else None
+    if value:
+        if header == "cloudfront-viewer-address":
+            value = value.rsplit(":", 1)[0]  # drop the port
+        return value.split(",")[0].strip().strip("[]")
     return request.client.host if request.client else "unknown"

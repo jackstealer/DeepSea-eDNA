@@ -1,19 +1,23 @@
-# Basic AWS deployment (EC2 + CloudFront)
+# Basic AWS deployment (EC2 + Caddy HTTPS)
 
 One EC2 instance runs the same `docker compose` stack as local development
-(PostgreSQL, Redis, MLflow, FastAPI, nginx frontend). Two CloudFront distributions
-provide free HTTPS URLs, one for the app and one for the API, which Google sign-in
-requires. The instance accepts traffic only from CloudFront; MLflow is reachable
-only through a Session Manager tunnel. Everything is one CloudFormation stack.
+(PostgreSQL, Redis, MLflow, FastAPI, nginx frontend). Caddy terminates HTTPS with
+automatic Let's Encrypt certificates for two [sslip.io](https://sslip.io) hostnames
+derived from the Elastic IP (`app.<ip-with-dashes>.sslip.io`, `api.<...>.sslip.io`),
+so no domain is needed and Google sign-in gets the HTTPS URL it requires. Only ports
+80/443 are open; MLflow is reachable only through a Session Manager tunnel.
+Everything is one CloudFormation stack.
 
 ```text
-browser ──HTTPS──> CloudFront (app) ──HTTP:3000──┐
-        ──HTTPS──> CloudFront (API) ──HTTP:8000──┴─> EC2 (Elastic IP): docker compose
-                                                     postgres · redis · mlflow · backend · frontend
+browser ──HTTPS──> EC2 (Elastic IP) ── Caddy :443 ─┬─> frontend (nginx)
+                                                   └─> backend (FastAPI) ── MLflow, PostgreSQL, Redis
 ```
 
 Approximate cost in ap-southeast-2: t3.small about $19/month, plus the public IPv4
-address (~$3.60) and 30 GB gp3 disk (~$3). CloudFront is free at low traffic.
+address (~$3.60) and 30 GB gp3 disk (~$3).
+
+(CloudFront would be the usual choice for HTTPS, but new accounts must be verified
+by AWS Support before they can create CloudFront distributions.)
 
 ## 1. Store the secrets in SSM Parameter Store
 
@@ -32,18 +36,16 @@ aws ssm put-parameter --name $P/GOOGLE_CLIENT_SECRET --type SecureString --value
 ```bash
 VPC=$(aws ec2 describe-vpcs --filters Name=is-default,Values=true --query "Vpcs[0].VpcId" --output text)
 SUBNET=$(aws ec2 describe-subnets --filters Name=vpc-id,Values=$VPC Name=default-for-az,Values=true --query "Subnets[0].SubnetId" --output text)
-PL=$(aws ec2 describe-managed-prefix-lists --filters Name=prefix-list-name,Values=com.amazonaws.global.cloudfront.origin-facing --query "PrefixLists[0].PrefixListId" --output text)
 
 aws cloudformation create-stack --stack-name deepsea-edna \
   --template-body file://deploy/aws/ec2-stack.yml --capabilities CAPABILITY_IAM \
-  --parameters ParameterKey=VpcId,ParameterValue=$VPC ParameterKey=SubnetId,ParameterValue=$SUBNET \
-               ParameterKey=CloudFrontPrefixListId,ParameterValue=$PL
+  --parameters ParameterKey=VpcId,ParameterValue=$VPC ParameterKey=SubnetId,ParameterValue=$SUBNET
 aws cloudformation wait stack-create-complete --stack-name deepsea-edna   # ~20-30 min
 aws cloudformation describe-stacks --stack-name deepsea-edna --query "Stacks[0].Outputs" --output table
 ```
 
-The stack completes only once the instance has built the images and both the API and
-frontend report healthy. Then add the `GoogleRedirectUri` output to your Google OAuth
+The stack completes only once the instance has built the images and both the app and
+API answer over HTTPS. Then add the `GoogleRedirectUri` output to your Google OAuth
 client's **Authorized redirect URIs**.
 
 ## Operate

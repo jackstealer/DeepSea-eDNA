@@ -1,0 +1,15 @@
+# HTTPS front door on the EC2 instance. Caddy obtains and renews Let's Encrypt
+# certificates automatically for both hostnames (set APP_HOST and API_HOST in .env,
+# e.g. app.13-55-1-2.sslip.io, which sslip.io resolves to 13.55.1.2).
+
+{$APP_HOST} {
+	encode gzip
+	reverse_proxy frontend:80
+}
+
+{$API_HOST} {
+	reverse_proxy backend:8000 {
+		# Real client IP for the backend's login rate limiter (TRUSTED_PROXY_HEADER=x-real-ip)
+		header_up X-Real-IP {remote_host}
+	}
+}

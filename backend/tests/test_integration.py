@@ -331,8 +331,8 @@ class TestSystem:
         from app.core.config import settings
         from app.core.rate_limit import client_ip
 
-        def make(header_value):
-            headers = [(b"cloudfront-viewer-address", header_value.encode())] if header_value else []
+        def make(header_value, name=b"cloudfront-viewer-address"):
+            headers = [(name, header_value.encode())] if header_value else []
             return Request({"type": "http", "headers": headers, "client": ("10.0.0.9", 1234)})
 
         assert client_ip(make("203.0.113.7:443")) == "10.0.0.9"  # header ignored unless trusted
@@ -340,6 +340,10 @@ class TestSystem:
         assert client_ip(make("203.0.113.7:443")) == "203.0.113.7"
         assert client_ip(make("2001:db8::1:443")) == "2001:db8::1"
         assert client_ip(make(None)) == "10.0.0.9"
+
+        monkeypatch.setattr(settings, "TRUSTED_PROXY_HEADER", "X-Real-IP")
+        assert client_ip(make("198.51.100.4", name=b"x-real-ip")) == "198.51.100.4"
+        assert client_ip(make("2001:db8::7", name=b"x-real-ip")) == "2001:db8::7"
 
     def test_security_headers(self):
         response = client.get("/health")
