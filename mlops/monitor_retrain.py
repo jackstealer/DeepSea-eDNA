@@ -205,17 +205,26 @@ def main() -> int:
         train_indices = train_indices[:-1]
 
     old_sequences, old_labels = read_training_subset(args.training_data, label_to_id, args.per_class)
+    old_order = list(range(len(old_sequences)))
+    random.shuffle(old_order)
+    old_split = max(1, int(len(old_order) * 0.8))
+    old_train_indices, old_eval_indices = old_order[:old_split], old_order[old_split:]
+    old_train_sequences = [old_sequences[i] for i in old_train_indices]
+    old_train_labels = [old_labels[i] for i in old_train_indices]
+    old_eval_sequences = [old_sequences[i] for i in old_eval_indices]
+    old_eval_labels = [old_labels[i] for i in old_eval_indices]
+
     candidate_model = train_candidate(
         champion_reference,
-        old_sequences + [sequences[i] for i in train_indices],
-        old_labels + [labels[i] for i in train_indices],
+        old_train_sequences + [sequences[i] for i in train_indices],
+        old_train_labels + [labels[i] for i in train_indices],
         max_length,
         args.device,
         args.epochs,
         batch_size=32,
     )
-    gate_labels = [labels[i] for i in gate_indices]
-    gate_sequences = [sequences[i] for i in gate_indices]
+    gate_labels = old_eval_labels + [labels[i] for i in gate_indices]
+    gate_sequences = old_eval_sequences + [sequences[i] for i in gate_indices]
     gate_champion = metrics(gate_labels, predict(champion_model, gate_sequences, max_length, args.device))
     gate_candidate = metrics(gate_labels, predict(candidate_model, gate_sequences, max_length, args.device))
 
@@ -253,9 +262,17 @@ def main() -> int:
         "target_distribution": dict(Counter(row["label"] for row in rows)),
         "existing_model_evaluation": champion_metrics,
         "quality_gate_holdout": {
-            "rows": len(gate_indices),
+            "rows": len(gate_sequences),
             "champion": gate_champion,
             "candidate": gate_candidate,
+        },
+        "combined_dataset_evaluation": {
+            "rows": len(gate_sequences),
+            "historical_rows": len(old_eval_sequences),
+            "new_batch_rows": len(gate_indices),
+            "champion": gate_champion,
+            "candidate": gate_candidate,
+            "note": "Metrics use a held-out split from the combined historical sample and new batch.",
         },
         "candidate_artifact": str(candidate_dir),
         "quality_gate_decision": decision,
