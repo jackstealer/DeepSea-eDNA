@@ -539,6 +539,19 @@ flowchart LR
 - 🗄️ Uses your MLflow server if the `MLFLOW_TRACKING_URI` secret is set, otherwise a throwaway store uploaded as an artifact
 - 🛡️ The gate stops a weaker model from ever reaching users. Rollback = move the alias back.
 
+### Labelled-batch quality monitoring
+
+The assessment workflow validates a labelled CSV, evaluates the current champion, fine-tunes a separate candidate on sampled historical data plus the new batch, and evaluates both models on a held-out portion of the batch. Weighted F1 is the gate metric because it balances precision and recall across the eight taxonomic classes. The champion is never overwritten; the decision and candidate artifact are written to the output directory.
+
+```bash
+PYTHONPATH=backend python mlops/monitor_retrain.py \
+  --new-data data/incoming/deepsea_edna_synthetic_new_batch.csv \
+  --output-dir data/monitoring/latest \
+  --epochs 1 --per-class 20
+```
+
+Outputs include `evaluation_report.json`, `quality_gate_decision.json`, and `candidate_model/`. Add `--mlflow-tracking-uri` to log the run and artifacts to MLflow.
+
 ---
 
 ## ☁️ Deployment on AWS
