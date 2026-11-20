@@ -11,6 +11,7 @@ from app.api.deps import get_current_user
 from app.core.security import utcnow
 from app.db.models import AnalysisJob, Prediction, User
 from app.db.session import get_db
+from app.services.model_loader import NOVELTY_THRESHOLD
 
 router = APIRouter(prefix="/me", tags=["My workspace"])
 
@@ -83,6 +84,7 @@ def my_stats(request: Request, user: User = Depends(get_current_user), db: Sessi
             "loaded": bool(model_loader and model_loader.is_loaded()),
             "version_name": current.version_name if current else None,
             "accuracy": current.metrics.get("accuracy") if current else None,
+            "novelty_threshold": NOVELTY_THRESHOLD,
         },
     }
 

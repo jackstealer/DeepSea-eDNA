@@ -130,7 +130,7 @@ function PersonalOverview() {
         <StatCard
           label="Potential Novel Taxa"
           value={formatNumber(stats?.predictions.novel)}
-          subtext="Confidence below 70%"
+          subtext={`Confidence below ${formatPercent(stats?.model.novelty_threshold ?? null, 0)}`}
           icon={<Sparkles className="h-4 w-4" />}
           tone={(stats?.predictions.novel ?? 0) > 0 ? 'amber' : 'default'}
           loading={statsQ.isLoading}

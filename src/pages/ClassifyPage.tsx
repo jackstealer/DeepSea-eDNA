@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useState } from 'react';
-import { useSearchParams } from 'react-router-dom';
+import { useLocation, useSearchParams } from 'react-router-dom';
 import { useMutation } from '@tanstack/react-query';
 import {
   Bar,
@@ -93,7 +93,11 @@ export function ClassifyPage() {
   );
 
   // Single sequence state
-  const [sequence, setSequence] = useState('');
+  // Other pages (e.g. Taxa Explorer) can open Classify with a sequence prefilled
+  const location = useLocation();
+  const [sequence, setSequence] = useState(
+    () => (location.state as { sequence?: string } | null)?.sequence ?? ''
+  );
   const [useCache, setUseCache] = useState(true);
   const [singleResult, setSingleResult] = useState<PredictResponse | null>(null);
 

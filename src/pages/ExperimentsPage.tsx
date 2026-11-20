@@ -526,7 +526,7 @@ export function ExperimentsPage() {
                   required
                   value={expName}
                   onChange={(e) => setExpName(e.target.value)}
-                  placeholder="BiLSTM Attention v2.2 Rollout"
+                  placeholder="e.g. Champion vs retrained challenger"
                   className="w-full rounded-lg border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-[#09101D] px-3 py-2"
                 />
               </div>

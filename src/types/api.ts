@@ -94,7 +94,7 @@ export interface MyStatsResponse {
   top_taxa: Array<{ taxon: string; count: number }>;
   recent_predictions: PredictionHistoryItem[];
   jobs: { total: number; recent: JobHistoryItem[] };
-  model: { loaded: boolean; version_name: string | null; accuracy: number | null };
+  model: { loaded: boolean; version_name: string | null; accuracy: number | null; novelty_threshold: number };
 }
 
 export interface ResourceMetric {

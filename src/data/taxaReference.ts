@@ -1,126 +1,115 @@
+import catalog from './taxaCatalog.json';
+
+/**
+ * Taxa the classifier predicts. Counts, species, marker genes, example sequences and
+ * validation metrics come from taxaCatalog.json, generated from the real training data and
+ * model by scripts/build_taxa_catalog.py. Only the common names and descriptions are curated.
+ */
+
+export interface NamedCount {
+  name: string;
+  count: number;
+}
+
+export interface TaxonValidation {
+  support: number;
+  precision: number;
+  recall: number;
+  f1: number;
+  confusedWith: NamedCount[];
+}
+
+export interface TaxonExample {
+  species: string;
+  accession: string;
+  marker: string;
+  sequence: string;
+}
+
 export interface TaxonReference {
   classId: number;
   name: string;
   rank: 'Order' | 'Class';
-  phylum: 'Chordata' | 'Arthropoda' | 'Mollusca';
-  subphylumOrClass: string;
+  phylum: string;
   lineage: string[];
+  commonName: string;
+  description: string;
   exampleSpecies: string[];
-  habitatNote: string;
   trainingCount: number;
+  speciesCount: number;
+  genusCount: number;
+  topSpecies: NamedCount[];
+  markers: NamedCount[];
+  sources: Record<string, number>;
+  length: { min: number; median: number; mean: number; max: number };
+  gcPercent: number;
+  example: TaxonExample | null;
+  validation?: TaxonValidation;
 }
 
-export const TAXA_REFERENCE: TaxonReference[] = [
-  {
-    classId: 0,
-    name: 'Perciformes',
-    rank: 'Order',
-    phylum: 'Chordata',
-    subphylumOrClass: 'Actinopterygii',
-    lineage: ['Animalia', 'Chordata', 'Actinopterygii', 'Perciformes'],
-    exampleSpecies: ['Paracottus knerii', 'Chelidonichthys kumu', 'Serranus cabrilla'],
-    habitatNote: 'Diverse ray-finned marine fishes spanning coastal reefs to bathydemersal shelves.',
-    trainingCount: 10000,
+const CURATED: Record<string, { commonName: string; description: string }> = {
+  Perciformes: {
+    commonName: 'Perch-like fishes',
+    description:
+      'Traditionally the largest order of ray-finned fishes. In this dataset it is dominated by Antarctic notothenioids (rockcods and icefishes) and sculpins.',
   },
-  {
-    classId: 1,
-    name: 'Salmoniformes',
-    rank: 'Order',
-    phylum: 'Chordata',
-    subphylumOrClass: 'Actinopterygii',
-    lineage: ['Animalia', 'Chordata', 'Actinopterygii', 'Salmoniformes'],
-    exampleSpecies: ['Salmo salar', 'Oncorhynchus kisutch', 'Salvelinus alpinus'],
-    habitatNote: 'Anadromous and cold-water pelagic fishes tracked across estuarine and North Pacific transects.',
-    trainingCount: 5000,
+  Salmoniformes: {
+    commonName: 'Salmon, trout and chars',
+    description:
+      'Cold-water fishes, many of them anadromous: they live at sea but spawn in rivers. Training data includes freshwater populations such as brown trout.',
   },
-  {
-    classId: 2,
-    name: 'Clupeiformes',
-    rank: 'Order',
-    phylum: 'Chordata',
-    subphylumOrClass: 'Actinopterygii',
-    lineage: ['Animalia', 'Chordata', 'Actinopterygii', 'Clupeiformes'],
-    exampleSpecies: ['Clupea harengus', 'Engraulis encrasicolus', 'Sardina pilchardus'],
-    habitatNote: 'Epipelagic schooling forage fishes serving as keystone trophic links in upwelling zones.',
-    trainingCount: 5000,
+  Clupeiformes: {
+    commonName: 'Herrings, sardines and anchovies',
+    description: 'Mostly marine schooling forage fishes that are central to pelagic food webs and major fisheries.',
   },
-  {
-    classId: 3,
-    name: 'Gadiformes',
-    rank: 'Order',
-    phylum: 'Chordata',
-    subphylumOrClass: 'Actinopterygii',
-    lineage: ['Animalia', 'Chordata', 'Actinopterygii', 'Gadiformes'],
-    exampleSpecies: ['Gadus morhua', 'Melanogrammus aeglefinus', 'Macrourus berglax'],
-    habitatNote: 'Demersal and abyssal-slope cods and grenadiers inhabiting continental margins to 3,000 m.',
-    trainingCount: 5000,
+  Gadiformes: {
+    commonName: 'Cods, hakes and grenadiers',
+    description: 'Predominantly marine, cold-water demersal fishes, from continental shelves to deep slopes.',
   },
-  {
-    classId: 4,
-    name: 'Pleuronectiformes',
-    rank: 'Order',
-    phylum: 'Chordata',
-    subphylumOrClass: 'Actinopterygii',
-    lineage: ['Animalia', 'Chordata', 'Actinopterygii', 'Pleuronectiformes'],
-    exampleSpecies: ['Pleuronectes platessa', 'Solea solea', 'Hippoglossus hippoglossus'],
-    habitatNote: 'Benthic flatfishes closely associated with sedimentary marine substrates.',
-    trainingCount: 3000,
+  Pleuronectiformes: {
+    commonName: 'Flatfishes',
+    description:
+      'Flounders, soles, halibut and turbot: bottom-dwelling fishes whose adults have both eyes on one side of the head.',
   },
-  {
-    classId: 5,
-    name: 'Decapoda',
-    rank: 'Order',
-    phylum: 'Arthropoda',
-    subphylumOrClass: 'Malacostraca',
-    lineage: ['Animalia', 'Arthropoda', 'Malacostraca', 'Decapoda'],
-    exampleSpecies: ['Homarus gammarus', 'Munidopsis serricornis', 'Chionoecetes opilio'],
-    habitatNote: 'Benthic crustaceans including deep-sea squat lobsters, crabs, and hydrothermal vent shrimp.',
-    trainingCount: 8000,
+  Decapoda: {
+    commonName: 'Crabs, lobsters and shrimps',
+    description: 'Ten-legged crustaceans found from intertidal zones to the deep sea; some lineages live in freshwater.',
   },
-  {
-    classId: 6,
-    name: 'Bivalvia',
-    rank: 'Class',
-    phylum: 'Mollusca',
-    subphylumOrClass: 'Bivalvia',
-    lineage: ['Animalia', 'Mollusca', 'Bivalvia'],
-    exampleSpecies: ['Bathymodiolus thermophilus', 'Mytilus edulis', 'Calyptogena magnifica'],
-    habitatNote: 'Filter-feeding and chemosynthetic molluscs abundant in benthic sediments and cold seeps.',
-    trainingCount: 6000,
+  Bivalvia: {
+    commonName: 'Clams, mussels, oysters and scallops',
+    description: 'Molluscs with a two-part hinged shell; most are filter feeders living in or on sediments.',
   },
-  {
-    classId: 7,
-    name: 'Gastropoda',
-    rank: 'Class',
-    phylum: 'Mollusca',
-    subphylumOrClass: 'Gastropoda',
-    lineage: ['Animalia', 'Mollusca', 'Gastropoda'],
-    exampleSpecies: ['Chrysomallon squamiferum', 'Littorina littorea', 'Buccinum undatum'],
-    habitatNote: 'Marine snails and abyssal vent gastropods detected via mitochondrial COI and 16S barcodes.',
-    trainingCount: 6000,
+  Gastropoda: {
+    commonName: 'Snails and slugs',
+    description:
+      'The most species-rich mollusc class. Training data mixes marine snails with freshwater and terrestrial relatives (e.g. springsnails).',
   },
-];
+};
+
+export const TAXA_CATALOG = catalog;
+
+export const TAXA_REFERENCE: TaxonReference[] = catalog.classes.map((c) => ({
+  ...c,
+  rank: c.rank === 'class' ? 'Class' : 'Order',
+  phylum: c.lineage[1],
+  commonName: CURATED[c.name]?.commonName ?? '',
+  description: CURATED[c.name]?.description ?? '',
+  exampleSpecies: c.topSpecies.slice(0, 3).map((s) => s.name),
+}));
 
 export function findTaxonByName(name: string): TaxonReference | undefined {
   const normalized = name.trim().toLowerCase();
   return TAXA_REFERENCE.find((t) => t.name.toLowerCase() === normalized);
 }
 
-// Mitochondrial cytb sequence (Paracottus knerii, Perciformes) from marine_diverse dataset
-export const EXAMPLE_SINGLE_SEQUENCE =
-  'ATCGCAAACAATGCACTAGTTGACCTTCCAGCCCCCTCAAATATTTCGGTATGATGAAAC' +
-  'TTTGGCTCCCTCCTCGGTCTCTGCTTGATTATCCAAATCCTAACCGGGCTCTTCCTCGCC' +
-  'ATACATTACACCTCTGACATCGCAACAGCCTTCTCATCAGTAGGCCATATTTGCCGAGAT' +
-  'GTCAACTACGGGTGACTTATCCGTAACCTCCACGCTAACGGTGCTTCTTTCTTCTTCATT' +
-  'TGCATCTATATGCACATCGGACGGGGCCTTTACTACGGCTCTTACCTTTATAAAGAAACT' +
-  'TGAAACATTGGGGTCGTACTCCTACTCCTTGTAATAATAACCGCTTTCGTAGGGTACGTC' +
-  'CTCCCCTGAGGTCAAATGTCATTCTGAGGGGCCACTGTCATCACAAATCTTCTTTCTGCA' +
-  'GTTCCTTACATTGGCAACGCTCTGGTCCAGTGAATCTGAGGAGGCTTCTCAGTAGACAAC' +
-  'GCCACCCTCACGCGATTCTTTGCCTTTCACTTCCTCTTCCCCTTCGTAATTGCAGGTGCA';
+const withExamples = TAXA_REFERENCE.filter((t) => t.example);
 
-export const EXAMPLE_BATCH_FASTA = `>NCBI_PX093086_Perciformes
-ATCGCAAACAATGCACTAGTTGACCTTCCAGCCCCCTCAAATATTTCGGTATGATGAAACTTTGGCTCCCTCCTCGGTCTCTGCTTGATTATCCAAATCCTAACCGGGCTCTTCCTCGCCATACATTACACCTCTGACATCGCAACAGCCTTCTCATCAGTAGGCCATATTTGCCGAGATGTCAACTACGGGTGACTTATCCGTAACCTCCACGCTAACGGTGCTTCTTTCTTCTTCATTTGCATCTATATGCACATCGGACGGGGCCTTTACTACGGCTCTTACCTTTATAAAGAAACT
->Sample_Gadiformes_COI_02
-CCTGTATCTAGTATTTGGTGCCTGAGCTGGAATAGTAGGAACAGCCCTAAGCCTCCTCATTCGAGCAGAACTTAGCCAACCCGGGGCTCTTTTGGGTGACGACCAGATTTATAATGTAATCGTTACTGCACATGCTTTCGTAATAATTTTCTTTATAGTAATGCCAATTATGATCGGAGGCTTTGGAAACTGACTTGTACCCCTAATGATTGGTGCCCCCGATATAGCATTTCCCCGAATAAACAACATAAGCTTCTGACTCCTGCCCCCATCCTTCCTTCTCCTACTAGCTTCT
->Sample_Decapoda_COI_03
-GGTCAACAAATCATAAAGATATTGGAACTTTATATTTTATTTTTGGAGCATGAGCAGGAATAGTAGGAACTTCTTTAAGTTTATTAATTCGAGCAGAATTAGGACAACCTGGATCCTTAATTGGAGATGATCAAATTTATAATGTTGTTGTAACTGCCCATGCATTTGTAATAATTTTCTTTATAGTTATACCAATCATAATTGGAGGATTTGGAAATTGATTAGTTCCACTAATATTAGGAGCTCCAGATATAGCTTTTCCTCGAATAAATAATATAAGATTTTGATTACTACCT`;
+/** A real COI sequence from the training data (most common species of its class) */
+export const EXAMPLE_SINGLE_SEQUENCE =
+  (TAXA_REFERENCE.find((t) => t.name === 'Gadiformes') ?? withExamples[0])?.example?.sequence ?? '';
+
+/** Real training sequences from three different classes, labelled with their NCBI accessions */
+export const EXAMPLE_BATCH_FASTA = withExamples
+  .filter((t) => ['Gadiformes', 'Decapoda', 'Bivalvia'].includes(t.name))
+  .map((t) => `>${t.example!.accession} ${t.example!.species}\n${t.example!.sequence}`)
+  .join('\n');

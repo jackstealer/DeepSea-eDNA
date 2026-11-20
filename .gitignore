@@ -117,3 +117,6 @@ ml_models/experiments.json
 
 # TypeScript incremental build cache
 *.tsbuildinfo
+
+# Browser-automation artifacts (Playwright MCP)
+.playwright-mcp/

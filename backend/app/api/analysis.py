@@ -44,7 +44,7 @@ def update_job(db: Session, job: AnalysisJob, **fields):
     db.commit()
 
 
-def run_analysis(job_id: str, file_paths: List[Path], model_loader: ModelLoader):
+def run_analysis(job_id: str, file_paths: List[Path], model_loader: ModelLoader, model_label: str):
     """
     Background task: preprocess, classify and summarise the uploaded files
     """
@@ -129,7 +129,7 @@ def run_analysis(job_id: str, file_paths: List[Path], model_loader: ModelLoader)
             'predictions': sequence_rows,
             'metadata': {
                 'processingTime': round(time.perf_counter() - started, 3),
-                'model': f"DeepTaxa-{model_loader.model_config.get('model_version', 'v2.1')}",
+                'model': model_label,
                 'clustering': 'Exact-match dereplication',
                 'timestamp': datetime.now(timezone.utc).isoformat(),
             },
@@ -178,7 +178,9 @@ def start_analysis(
     db.add(job)
     db.commit()
 
-    background_tasks.add_task(run_analysis, job.id, paths, req.app.state.model_loader)
+    info = req.app.state.model_info  # the model version actually serving, recorded with the results
+    model_label = f"{info['name']} v{info['version']}" + (f" @{info['alias']}" if info.get('alias') else "")
+    background_tasks.add_task(run_analysis, job.id, paths, req.app.state.model_loader, model_label)
     logger.info(f"User {user.id} started analysis job {job.id} with {len(paths)} files")
     return AnalysisResponse(jobId=job.id, status='queued', progress=0)
 

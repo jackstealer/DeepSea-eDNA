@@ -6,6 +6,13 @@ import { api } from '@/lib/api';
 import { toast } from '@/store/toastStore';
 import { cn, getErrorBannerMessage } from '@/lib/utils';
 import { OAuthButtons } from '@/components/auth/OAuthButtons';
+import { TAXA_CATALOG, TAXA_REFERENCE } from '@/data/taxaReference';
+
+// Measured on the held-out validation split (see scripts/build_taxa_catalog.py)
+const VALIDATION_ACCURACY = TAXA_CATALOG.validation
+  ? `${(TAXA_CATALOG.validation.accuracy * 100).toFixed(1)}%`
+  : '—';
+const PHYLA = Array.from(new Set(TAXA_REFERENCE.map((t) => t.lineage[1])));
 
 export function LoginPage() {
   const navigate = useNavigate();
@@ -201,28 +208,28 @@ export function LoginPage() {
         {/* Scientific Summary */}
         <div className="relative z-10 my-10 lg:my-0 max-w-xl">
           <p className="text-xs font-mono text-cyan-400 tracking-wide mb-3">
-            CNN + BiLSTM Taxonomic Inference Engine
+            CNN + self-attention taxonomic classifier
           </p>
           <h1 className="text-3xl sm:text-4xl font-semibold tracking-tight text-white leading-tight [text-wrap:balance]">
             Taxonomic clarity from abyssal environmental DNA.
           </h1>
           <p className="mt-4 text-sm text-slate-300 leading-relaxed max-w-lg">
-            Classify marine mitochondrial COI and cytochrome b sequences across 8 oceanic
-            taxonomic orders and classes with 94.18% validation accuracy, real-time novelty
-            scoring, and reproducible MLOps experiment tracking.
+            Classify marine DNA barcodes (mostly COI and cytochrome b) into {TAXA_REFERENCE.length}{' '}
+            taxonomic orders and classes, with {VALIDATION_ACCURACY} accuracy on held-out data, novelty
+            flags for low-confidence reads, and MLflow-tracked model versions.
           </p>
 
           <dl className="mt-8 grid grid-cols-3 gap-6 border-t border-slate-800/90 pt-6">
             <div>
               <dt className="text-xs text-slate-400">Validation Accuracy</dt>
               <dd className="mt-1 text-xl font-semibold font-mono tabular-nums text-cyan-300">
-                94.18%
+                {VALIDATION_ACCURACY}
               </dd>
             </div>
             <div>
               <dt className="text-xs text-slate-400">Marine Taxa</dt>
               <dd className="mt-1 text-xl font-semibold font-mono tabular-nums text-white">
-                8 Groups
+                {TAXA_REFERENCE.length} Groups
               </dd>
             </div>
             <div>
@@ -235,13 +242,18 @@ export function LoginPage() {
         </div>
 
         <div className="relative z-10 flex flex-wrap items-center gap-3 text-xs text-slate-400">
-          <span>Chordata</span>
-          <span aria-hidden="true">·</span>
-          <span>Arthropoda</span>
-          <span aria-hidden="true">·</span>
-          <span>Mollusca</span>
-          <span aria-hidden="true">·</span>
-          <span className="font-mono text-slate-500">{getEffectiveApiBaseUrl()}</span>
+          {PHYLA.map((phylum, i) => (
+            <span key={phylum} className="inline-flex items-center gap-3">
+              {i > 0 && <span aria-hidden="true">·</span>}
+              {phylum}
+            </span>
+          ))}
+          {import.meta.env.DEV && (
+            <>
+              <span aria-hidden="true">·</span>
+              <span className="font-mono text-slate-500">{getEffectiveApiBaseUrl()}</span>
+            </>
+          )}
         </div>
       </div>
 

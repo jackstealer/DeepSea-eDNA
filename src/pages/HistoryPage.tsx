@@ -60,7 +60,8 @@ function Pager({ offset, total, onChange }: { offset: number; total: number; onC
 
 function ClassificationHistory() {
   const [offset, setOffset] = useState(0);
-  const [taxon, setTaxon] = useState('');
+  // ?taxon=<name> (linked from the Taxa Explorer) pre-selects the filter
+  const [taxon, setTaxon] = useState(() => new URLSearchParams(window.location.search).get('taxon') ?? '');
   const historyQ = useQuery({
     queryKey: ['my-predictions', offset, taxon],
     queryFn: () => api.getMyPredictions(PAGE_SIZE, offset, taxon || undefined),

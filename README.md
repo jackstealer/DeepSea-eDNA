@@ -48,7 +48,7 @@
 
 DeepSea eDNA AI is a comprehensive machine learning operations platform that provides:
 
-- **94.18% Accuracy** on 8 marine species classification
+- **95.0% held-out accuracy** classifying 8 marine taxa (orders/classes)
 - **54 API endpoints** for the complete ML lifecycle
 - **Enterprise Security** with JWT authentication and RBAC
 - **Real-time Monitoring** with Prometheus metrics
@@ -199,7 +199,7 @@ python -m venv venv
 source venv/bin/activate  # On Windows: venv\Scripts\activate
 
 # Install dependencies
-pip install -r backend/requirements.txt
+pip install -r backend/requirements-dev.txt
 
 # Start API
 cd backend
@@ -531,7 +531,6 @@ with Google/GitHub using that email: the account becomes `admin`. Everyone else 
 **Testing:**
 
 - pytest - Test framework
-- pytest-asyncio - Async testing
 - httpx - HTTP client for API tests
 
 **Deployment:**
@@ -545,28 +544,29 @@ with Google/GitHub using that email: the account becomes `admin`. Everyone else 
 
 ## 📊 Model Information
 
-### Marine Species Classes
+### Taxonomic Classes
 
-The model classifies 8 marine taxa:
+The model predicts 8 classes (6 orders and 2 classes across Chordata, Arthropoda and Mollusca).
+Precision and recall are measured on the held-out validation split (9,600 sequences,
+20% held out, seed 42); regenerate with `python scripts/build_taxa_catalog.py`.
 
-| Class ID | Taxonomic Group | Common Examples                           |
-| -------- | --------------- | ----------------------------------------- |
-| 0        | Actinopterygii  | Ray-finned fishes (salmon, tuna, bass)    |
-| 1        | Chondrichthyes  | Cartilaginous fish (sharks, rays, skates) |
-| 2        | Crustacea       | Crabs, shrimp, lobsters, barnacles        |
-| 3        | Echinodermata   | Sea stars, sea urchins, sea cucumbers     |
-| 4        | Gastropoda      | Marine snails, sea slugs, limpets         |
-| 5        | Mammalia        | Whales, dolphins, seals, sea otters       |
-| 6        | Mollusca        | Squids, octopuses, cuttlefish, clams      |
-| 7        | Reptilia        | Sea turtles, marine iguanas, sea snakes   |
+| ID | Taxon | Rank | Phylum | Common name | Training seqs | Precision | Recall |
+| -- | ----- | ---- | ------ | ----------- | ------------- | --------- | ------ |
+| 0 | Perciformes | order | Chordata | Perch-like fishes | 10,000 | 92.9% | 91.2% |
+| 1 | Salmoniformes | order | Chordata | Salmon, trout and chars | 5,000 | 93.2% | 96.6% |
+| 2 | Clupeiformes | order | Chordata | Herrings, sardines and anchovies | 5,000 | 90.0% | 93.9% |
+| 3 | Gadiformes | order | Chordata | Cods, hakes and grenadiers | 5,000 | 96.5% | 93.9% |
+| 4 | Pleuronectiformes | order | Chordata | Flatfishes | 3,000 | 85.2% | 90.2% |
+| 5 | Decapoda | order | Arthropoda | Crabs, lobsters and shrimps | 8,000 | 99.7% | 96.7% |
+| 6 | Bivalvia | class | Mollusca | Clams, mussels, oysters and scallops | 6,000 | 98.0% | 98.6% |
+| 7 | Gastropoda | class | Mollusca | Snails and slugs | 6,000 | 99.2% | 98.4% |
 
 ### Performance Metrics
 
-- **Overall Accuracy**: 94.18%
-- **Training Dataset**: 50,000+ sequences
-- **Validation Split**: 20%
-- **Test Accuracy**: 94.18%
-- **Model Architecture**: Deep Neural Network with attention mechanism
+- **Validation accuracy**: 95.0% on 9,600 held-out sequences (94.18% recorded at training time)
+- **Training dataset**: 48,000 NCBI GenBank sequences (`data/training/marine_diverse`), 20% held out for validation
+- **Model architecture**: DNA embedding, 3 convolutional layers, multi-head self-attention, max pooling, dense classifier
+- **Confidence**: softmax probability of the top class; below 70% the read is flagged as a potential novel taxon
 - **Model Size**: 15 MB of PyTorch weights (API image ~0.6 GB with CPU-only PyTorch)
 - **Inference Time**: <100ms per sequence (cached)
 - **Batch Processing**: Up to 1000 sequences per request
@@ -593,7 +593,7 @@ MLflow tests use a throwaway SQLite-backed store, so no server is needed.
 ```bash
 cd backend
 pip install torch --index-url https://download.pytorch.org/whl/cpu
-pip install -r requirements.txt
+pip install -r requirements-dev.txt
 python -m pytest tests -v
 
 # Against PostgreSQL instead of SQLite
@@ -637,44 +637,45 @@ CI runs all of this on every push and pull request (see [CI/CD](#-cicd-pipeline)
 ## 📋 Project Structure
 
 ```
-DeepSea-eDNA-AI/
+DeepSea-eDNA/
 ├── backend/
 │   ├── app/
-│   │   ├── api/                  # /api/* route handlers
-│   │   │   ├── analysis.py       # File analysis jobs
-│   │   │   ├── export.py         # JSON/CSV/TSV/BIOM/FASTA export
-│   │   │   ├── models.py         # Single & batch prediction
-│   │   │   └── upload.py         # FASTA/FASTQ upload
-│   │   ├── core/                 # Settings & logging
+│   │   ├── api/                  # Routers: auth, oauth, me, models, upload, analysis,
+│   │   │                         #   export, versions, experiments, system
+│   │   ├── core/                 # Settings, security (JWT/RBAC), rate limiting, logging
+│   │   ├── db/                   # SQLAlchemy models, session, Alembic migrations
+│   │   ├── ml/                   # MLflow registry, pyfunc wrapper, registry CLI
 │   │   ├── models/
-│   │   │   └── deep_learning.py  # CNN + attention classifier
-│   │   ├── services/             # Model loader, sequence processing
-│   │   └── main.py               # FastAPI app (auth, monitoring, versions, experiments)
-│   ├── tests/
-│   │   └── test_integration.py   # API test suite (pytest)
+│   │   │   └── deep_learning.py  # CNN + self-attention classifier
+│   │   ├── services/             # Model loader/serving, sequence processing, users
+│   │   └── main.py               # FastAPI application
+│   ├── tests/                    # pytest suite (API, auth, MLflow)
 │   ├── training/
-│   │   └── train_model.py        # Model training script
-│   └── requirements.txt          # Python dependencies
-├── mlops/
-│   ├── advanced_security.py      # JWT & RBAC implementation
-│   ├── ab_testing.py             # A/B testing system
-│   ├── model_versioning.py       # Model registry & versioning
-│   ├── monitoring.py             # Metrics & health checks
-│   ├── cache_manager.py          # Redis caching layer
-│   └── export_formats.py         # Data export formats
-├── ml_models/
-│   └── marine_model/             # Trained model files
-│       ├── best_model.pth        # PyTorch model weights
-│       ├── model_config.json     # Model configuration
-│       └── taxonomy_map.json     # Species mapping
-├── data/
-│   └── training/marine_diverse/  # Training dataset (8 classes)
+│   │   ├── train_model.py        # Training + MLflow logging + promotion
+│   │   └── requirements.txt      # Extra training dependencies
+│   ├── alembic.ini
+│   ├── requirements.txt          # API runtime dependencies
+│   └── requirements-dev.txt      # + test dependencies
+├── mlops/                        # A/B testing, model versioning, monitoring,
+│                                 #   cache manager, export formats
+├── ml_models/marine_model/       # Bundled model: weights, config, taxonomy map
+├── data/training/marine_diverse/ # Training dataset (8 classes, 48,000 sequences)
+├── scripts/
+│   ├── smoke_test.py             # End-to-end check of a running stack (used in CI)
+│   └── build_taxa_catalog.py     # Regenerates src/data/taxaCatalog.json
 ├── src/                          # React + TypeScript frontend
-├── .github/workflows/            # CI tests, PR checks, Docker build, training
-├── Dockerfile                    # Backend container
-├── index.html, vite.config.ts    # Frontend entry & build config
-├── package.json                  # Frontend dependencies
-└── README.md                     # This file
+│   ├── components/               # Layout, auth, UI primitives
+│   ├── data/                     # Taxa catalog (generated) + curated descriptions
+│   ├── pages/                    # Routed pages
+│   └── lib/, store/, types/      # API client, state, shared types
+├── deploy/
+│   ├── nginx.conf                # Frontend container web server
+│   └── aws/                      # EC2 CloudFormation stack, Caddy HTTPS, compose override
+├── .github/workflows/            # CI/CD, PR checks, model retraining
+├── docker-compose.yml            # Full stack: frontend, API, PostgreSQL, MLflow
+├── Dockerfile                    # API image
+├── Dockerfile.frontend           # Frontend image
+└── README.md
 ```
 
 ---

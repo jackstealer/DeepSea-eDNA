@@ -51,9 +51,10 @@ export function ModelsPage() {
   const [regName, setRegName] = useState('');
   const [regPath, setRegPath] = useState('./ml_models/marine_model');
   const [regDesc, setRegDesc] = useState('');
-  const [regAccuracy, setRegAccuracy] = useState('0.9418');
-  const [regF1, setRegF1] = useState('0.9380');
-  const [regTags, setRegTags] = useState('cnn-lstm, marine_diverse');
+  // Metrics must come from a real evaluation, so nothing is pre-filled
+  const [regAccuracy, setRegAccuracy] = useState('');
+  const [regF1, setRegF1] = useState('');
+  const [regTags, setRegTags] = useState('marine_diverse');
   const [regSetCurrent, setRegSetCurrent] = useState(false);
 
   const versionsQ = useQuery({

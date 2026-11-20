@@ -1,0 +1,1090 @@
+{
+ "generatedAt": "2026-11-20T03:21:44+00:00",
+ "dataset": "marine_diverse",
+ "totalSequences": 48000,
+ "validation": {
+  "accuracy": 0.9501,
+  "samples": 9600,
+  "split": "20% held out, seed 42"
+ },
+ "classes": [
+  {
+   "classId": 0,
+   "name": "Perciformes",
+   "rank": "order",
+   "lineage": [
+    "Animalia",
+    "Chordata",
+    "Actinopterygii",
+    "Perciformes"
+   ],
+   "trainingCount": 10000,
+   "speciesCount": 1068,
+   "genusCount": 352,
+   "topSpecies": [
+    {
+     "name": "Notothenia rossii",
+     "count": 259
+    },
+    {
+     "name": "Gasterosteus aculeatus",
+     "count": 253
+    },
+    {
+     "name": "Melanostigma gelatinosum",
+     "count": 227
+    },
+    {
+     "name": "Taurulus bubalis",
+     "count": 220
+    },
+    {
+     "name": "Perca flavescens",
+     "count": 205
+    },
+    {
+     "name": "Etheostoma spectabile",
+     "count": 194
+    },
+    {
+     "name": "Eutrigla gurnardus",
+     "count": 194
+    },
+    {
+     "name": "Notothenia coriiceps",
+     "count": 193
+    },
+    {
+     "name": "Pseudochaenichthys georgianus",
+     "count": 190
+    },
+    {
+     "name": "Echiichthys vipera",
+     "count": 189
+    },
+    {
+     "name": "Pholis gunnellus",
+     "count": 173
+    },
+    {
+     "name": "Sander vitreus",
+     "count": 168
+    }
+   ],
+   "markers": [
+    {
+     "name": "COI",
+     "count": 5312
+    },
+    {
+     "name": "Nuclear transcript",
+     "count": 2976
+    },
+    {
+     "name": "Other",
+     "count": 427
+    },
+    {
+     "name": "Cytochrome b",
+     "count": 336
+    },
+    {
+     "name": "12S rRNA",
+     "count": 328
+    },
+    {
+     "name": "Control region",
+     "count": 279
+    },
+    {
+     "name": "NADH dehydrogenase",
+     "count": 245
+    },
+    {
+     "name": "16S rRNA",
+     "count": 95
+    },
+    {
+     "name": "18S/28S rRNA",
+     "count": 2
+    }
+   ],
+   "sources": {
+    "NCBI": 10000
+   },
+   "length": {
+    "min": 129,
+    "median": 652,
+    "mean": 748,
+    "max": 1500
+   },
+   "gcPercent": 47.3,
+   "example": {
+    "species": "Notothenia rossii",
+    "accession": "ON113569.1",
+    "marker": "COI",
+    "sequence": "GTCTTCGGCGCTTGAGCCGGGATAGTAGGAACTGCCCTTAGCCTGCTCATTCGAGCAGAACTTAGCCAACCTGGCACCCTATTGGGGGACGACCAAATTTATAATGTAATTGTTACCGCTCATGCCTTTGTAATAATTTTCTTTATAGTTATACCCATTATAATTGGAGGCTTTGGAAACTGGCTAATCCCCCTCATGATTGGGGCCCCCGATATGGCTTTTCCTCGCATAAATAATATGAGCTTCTGACTCCTCCCTCCCTCCTTTCTCCTTTTACTAGCTTCTTCAGGTGTAGAAGCCGGGGCAGGCACCGGATGAACCGTCTACCCTCCTCTTTCTGGAAACTTGGCCCATGCAGGTGCCTCTGTAGATTTAACTATTTTTTCTCTACATTTAGCCGGCATTTCCTCTATCTTAGGGGCAATTAATTTTATTACAACAATTATCAACATAAAACCTCCCGCCATTTCTCAATACCAAACCCCTCTCTTCGTATGGGCCGTTTTAATTACTGCCGTTCTTCTACTTCTTTCGCTCCCTGTGCTAGCTGCCGGTATTACTATGCTCCTCACCGACCGAAACCTAAACACCACCTTCTTTGACCCTGCAGGAGGAGGAGACCCAATCCTTTACCAACACCTC"
+   },
+   "validation": {
+    "support": 2019,
+    "precision": 0.9293,
+    "recall": 0.9118,
+    "f1": 0.9205,
+    "confusedWith": [
+     {
+      "name": "Pleuronectiformes",
+      "count": 84
+     },
+     {
+      "name": "Clupeiformes",
+      "count": 45
+     },
+     {
+      "name": "Salmoniformes",
+      "count": 23
+     }
+    ]
+   }
+  },
+  {
+   "classId": 1,
+   "name": "Salmoniformes",
+   "rank": "order",
+   "lineage": [
+    "Animalia",
+    "Chordata",
+    "Actinopterygii",
+    "Salmoniformes"
+   ],
+   "trainingCount": 5000,
+   "speciesCount": 102,
+   "genusCount": 14,
+   "topSpecies": [
+    {
+     "name": "Salmo trutta",
+     "count": 582
+    },
+    {
+     "name": "Salmo salar",
+     "count": 527
+    },
+    {
+     "name": "Prosopium williamsoni",
+     "count": 349
+    },
+    {
+     "name": "Oncorhynchus kisutch",
+     "count": 270
+    },
+    {
+     "name": "Oncorhynchus keta",
+     "count": 233
+    },
+    {
+     "name": "Oncorhynchus clarkii",
+     "count": 225
+    },
+    {
+     "name": "Coregonus lavaretus",
+     "count": 204
+    },
+    {
+     "name": "Oncorhynchus masou",
+     "count": 203
+    },
+    {
+     "name": "Salvelinus malma",
+     "count": 203
+    },
+    {
+     "name": "Salvelinus alpinus",
+     "count": 196
+    },
+    {
+     "name": "Oncorhynchus mykiss",
+     "count": 183
+    },
+    {
+     "name": "Oncorhynchus nerka",
+     "count": 180
+    }
+   ],
+   "markers": [
+    {
+     "name": "Nuclear transcript",
+     "count": 2005
+    },
+    {
+     "name": "COI",
+     "count": 1317
+    },
+    {
+     "name": "Cytochrome b",
+     "count": 817
+    },
+    {
+     "name": "Control region",
+     "count": 452
+    },
+    {
+     "name": "NADH dehydrogenase",
+     "count": 225
+    },
+    {
+     "name": "Other",
+     "count": 101
+    },
+    {
+     "name": "12S rRNA",
+     "count": 41
+    },
+    {
+     "name": "18S/28S rRNA",
+     "count": 24
+    },
+    {
+     "name": "16S rRNA",
+     "count": 18
+    }
+   ],
+   "sources": {
+    "NCBI": 5000
+   },
+   "length": {
+    "min": 115,
+    "median": 881,
+    "mean": 892,
+    "max": 1500
+   },
+   "gcPercent": 46.2,
+   "example": {
+    "species": "Salmo trutta",
+    "accession": "KX594682.1",
+    "marker": "COI",
+    "sequence": "AAAGACATTGGCACCCTCTATTTAGTATTTGGTGCCTGAGCCGGGATAGTCGGCACCGCCCTAAGTCTCTTGATTCGGGCAGAACTCAGCCAACCCGGCGCCCTCCTAGGGGATGACCAGATTTATAACGTAATTGTTACAGCCCATGCCTTCGTAATATTTTTCTTTATAGTCATACCAATTATGATCGGCGGCTTTGGAAACTGATTAATCCCTCTCATAATCGGAGCCCCCGACATAGCATTCCCCCGAATGAATAACATAAGCTTCTGACTCCTCCCTCCGTCCTTTCTTCTCCTCCTAGCCTCGTCTGGAGTTGAAGCCGGCGCTGGCACAGGATGAACAGTCTACCCCCCTCTAGCCGGCAATCTTGCCCACGCAGGAGCTTCCGTTGACTTAACTATTTTCTCCCTCCATTTAGCTGGTATTTCCTCAATTTTGGGGGCCATTAATTTTATTACGACCATTATTAACATAAAACCCCCAGCCATCTCCCAATATCAAACTCCACTTTTTGTTTGGGCCGTGTTAGTCACCGCCGTCCTCTTATTACTCTCCCTCCCTGTTTTAGCAGCAGGCATTACTATGCTACTCACAGACCGAAATCTTAATACCACTTTCTTTGACCCGGCAGGCGGAGGGGATCCAATCTTATACCAACACCTCTTTTGATTCTTTGGCCACACAAAAA"
+   },
+   "validation": {
+    "support": 1003,
+    "precision": 0.9317,
+    "recall": 0.9661,
+    "f1": 0.9486,
+    "confusedWith": [
+     {
+      "name": "Clupeiformes",
+      "count": 17
+     },
+     {
+      "name": "Perciformes",
+      "count": 8
+     },
+     {
+      "name": "Gadiformes",
+      "count": 5
+     }
+    ]
+   }
+  },
+  {
+   "classId": 2,
+   "name": "Clupeiformes",
+   "rank": "order",
+   "lineage": [
+    "Animalia",
+    "Chordata",
+    "Actinopterygii",
+    "Clupeiformes"
+   ],
+   "trainingCount": 5000,
+   "speciesCount": 234,
+   "genusCount": 74,
+   "topSpecies": [
+    {
+     "name": "Engraulis encrasicolus",
+     "count": 348
+    },
+    {
+     "name": "Engraulis japonicus",
+     "count": 325
+    },
+    {
+     "name": "Sardinops sagax",
+     "count": 208
+    },
+    {
+     "name": "Coilia nasus",
+     "count": 183
+    },
+    {
+     "name": "Amblygaster sirm",
+     "count": 174
+    },
+    {
+     "name": "Sardinella aurita",
+     "count": 162
+    },
+    {
+     "name": "Sardina pilchardus",
+     "count": 158
+    },
+    {
+     "name": "Sprattus sprattus",
+     "count": 137
+    },
+    {
+     "name": "Clupea harengus",
+     "count": 132
+    },
+    {
+     "name": "Sardinella zunasi",
+     "count": 116
+    },
+    {
+     "name": "Alosa alosa",
+     "count": 110
+    },
+    {
+     "name": "Alosa pseudoharengus",
+     "count": 97
+    }
+   ],
+   "markers": [
+    {
+     "name": "COI",
+     "count": 2549
+    },
+    {
+     "name": "Cytochrome b",
+     "count": 744
+    },
+    {
+     "name": "Control region",
+     "count": 666
+    },
+    {
+     "name": "Nuclear transcript",
+     "count": 638
+    },
+    {
+     "name": "Other",
+     "count": 233
+    },
+    {
+     "name": "12S rRNA",
+     "count": 81
+    },
+    {
+     "name": "NADH dehydrogenase",
+     "count": 77
+    },
+    {
+     "name": "16S rRNA",
+     "count": 12
+    }
+   ],
+   "sources": {
+    "NCBI": 5000
+   },
+   "length": {
+    "min": 129,
+    "median": 652,
+    "mean": 752,
+    "max": 1499
+   },
+   "gcPercent": 46.4,
+   "example": {
+    "species": "Engraulis encrasicolus",
+    "accession": "KU056664.1",
+    "marker": "COI",
+    "sequence": "CTATATCTTATTTTCGGTGCCTGAGCAGGAATGGTAGGGACAGCACTTAGCCTCCTTATTCGAGCAGAACTAAGCCAACCAGGAGCACTTCTGGGGGACGATCAAATTTATAACGTAATCGTTACCGCTCACGCATTCGTAATAATCTTTTTCATGGTAATGCCCATTCTAATCGGTGGGTTCGGGAATTGACTAGTTCCTCTTATACTAGGGGCCCCAGACATGGCATTCCCCCGAATGAACAATATGAGCTTTTGACTCCTTCCTCCTTCTTTCCTTCTCCTCTTAGCATCATCTGGTGTTGAAGCAGGAGCCGGGACAGGATGAACAGTCTACCCCCCTTTATCAGGAAACCTTGCCCACGCAGGAGCGTCAGTAGATTTAACAATCTTCTCTCTCCACTTGGCAGGGATTTCATCAATCCTAGGTGCCATTAATTTCATTACTACTATTATTAATATGAAACCACCTGCTATTTCACAATACCAGACACCTCTATTTGTCTGAGCTGTATTAATCACGGCAGTACTTTTACTTCTTTCACTACCCGTTCTAGCTGCTGGGATTACTATGCTTCTTACAGACCGAAACCTAAATACTACTTTCTTCGACCCGGCAGGGGGAGGAGACCCGATTCTTTATCAACACCTA"
+   },
+   "validation": {
+    "support": 983,
+    "precision": 0.9005,
+    "recall": 0.939,
+    "f1": 0.9193,
+    "confusedWith": [
+     {
+      "name": "Perciformes",
+      "count": 38
+     },
+     {
+      "name": "Salmoniformes",
+      "count": 14
+     },
+     {
+      "name": "Gadiformes",
+      "count": 4
+     }
+    ]
+   }
+  },
+  {
+   "classId": 3,
+   "name": "Gadiformes",
+   "rank": "order",
+   "lineage": [
+    "Animalia",
+    "Chordata",
+    "Actinopterygii",
+    "Gadiformes"
+   ],
+   "trainingCount": 5000,
+   "speciesCount": 291,
+   "genusCount": 81,
+   "topSpecies": [
+    {
+     "name": "Gadus morhua",
+     "count": 512
+    },
+    {
+     "name": "Gadus chalcogrammus",
+     "count": 385
+    },
+    {
+     "name": "Gadus macrocephalus",
+     "count": 374
+    },
+    {
+     "name": "Boreogadus saida",
+     "count": 336
+    },
+    {
+     "name": "Micromesistius poutassou",
+     "count": 241
+    },
+    {
+     "name": "Merluccius capensis",
+     "count": 164
+    },
+    {
+     "name": "Merluccius merluccius",
+     "count": 157
+    },
+    {
+     "name": "Lota lota",
+     "count": 151
+    },
+    {
+     "name": "Pollachius pollachius",
+     "count": 150
+    },
+    {
+     "name": "Melanogrammus aeglefinus",
+     "count": 142
+    },
+    {
+     "name": "Merlangius merlangus",
+     "count": 88
+    },
+    {
+     "name": "Pollachius virens",
+     "count": 87
+    }
+   ],
+   "markers": [
+    {
+     "name": "COI",
+     "count": 2058
+    },
+    {
+     "name": "Cytochrome b",
+     "count": 1008
+    },
+    {
+     "name": "Nuclear transcript",
+     "count": 600
+    },
+    {
+     "name": "Control region",
+     "count": 483
+    },
+    {
+     "name": "Other",
+     "count": 360
+    },
+    {
+     "name": "NADH dehydrogenase",
+     "count": 266
+    },
+    {
+     "name": "16S rRNA",
+     "count": 126
+    },
+    {
+     "name": "12S rRNA",
+     "count": 99
+    }
+   ],
+   "sources": {
+    "NCBI": 5000
+   },
+   "length": {
+    "min": 103,
+    "median": 626,
+    "mean": 668,
+    "max": 1499
+   },
+   "gcPercent": 44.0,
+   "example": {
+    "species": "Gadus morhua",
+    "accession": "ON545938.1",
+    "marker": "COI",
+    "sequence": "ACCCTTTATCTCGTATTTGGTGCCTGAGCCGGCATAGTCGGAACAGCCCTAAGCCTGCTCATTCGAGCAGAGCTAAGTCAACCTGGTGCACTTCTTGGTGATGATCAAATTTATAATGTGATCGTTACAGCGCACGCTTTCGTAATAATTTTCTTTATAGTAATACCACTAATAATTGGAGGCTTTGGGAACTGACTCATTCCTCTAATGATCGGTGCACCAGATATAGCTTTCCCTCGAATAAATAACATAAGCTTCTGACTTCTTCCTCCATCTTTCCTGCTCCTTTTAGCATCCTCTGGTGTAGAAGCTGGGGCTGGAACAGGCTGAACTGTCTATCCACCTTTAGCCGGAAACCTCGCTCATGCTGGGGCATCTGTTGATCTCACTATTTTTTCTCTTCATCTAGCAGGGATTTCATCAATTCTTGGGGCAATTAATTTTATTACCACAATTATTAATATGAAACCTCCGGCAATTTCACAGTACCAAACACCCCTATTTGTTTGAGCAGTACTAATTACAGCTGTGCTTCTACTATTATCTCTCCCCGTCTTAGCAGCTGGTATCACAATACTTCTAACTGACCGTAATCTTAATACTTCTTTCTTTGACCCTGCTGGAGGAGGTGATCCCATTTTATACCAACACTTATTCTGATTCTTC"
+   },
+   "validation": {
+    "support": 1006,
+    "precision": 0.9653,
+    "recall": 0.9394,
+    "f1": 0.9521,
+    "confusedWith": [
+     {
+      "name": "Perciformes",
+      "count": 31
+     },
+     {
+      "name": "Clupeiformes",
+      "count": 14
+     },
+     {
+      "name": "Salmoniformes",
+      "count": 11
+     }
+    ]
+   }
+  },
+  {
+   "classId": 4,
+   "name": "Pleuronectiformes",
+   "rank": "order",
+   "lineage": [
+    "Animalia",
+    "Chordata",
+    "Actinopterygii",
+    "Pleuronectiformes"
+   ],
+   "trainingCount": 3000,
+   "speciesCount": 329,
+   "genusCount": 170,
+   "topSpecies": [
+    {
+     "name": "Pseudopleuronectes yokohamae",
+     "count": 212
+    },
+    {
+     "name": "Scophthalmus maximus",
+     "count": 141
+    },
+    {
+     "name": "Solea solea",
+     "count": 139
+    },
+    {
+     "name": "Paralichthys olivaceus",
+     "count": 122
+    },
+    {
+     "name": "Microchirus variegatus",
+     "count": 108
+    },
+    {
+     "name": "Hippoglossus stenolepis",
+     "count": 86
+    },
+    {
+     "name": "Pleuronectes platessa",
+     "count": 81
+    },
+    {
+     "name": "Platichthys flesus",
+     "count": 74
+    },
+    {
+     "name": "Pseudopleuronectes herzensteini",
+     "count": 68
+    },
+    {
+     "name": "Solea senegalensis",
+     "count": 64
+    },
+    {
+     "name": "Hippoglossus hippoglossus",
+     "count": 62
+    },
+    {
+     "name": "Limanda limanda",
+     "count": 61
+    }
+   ],
+   "markers": [
+    {
+     "name": "COI",
+     "count": 1156
+    },
+    {
+     "name": "Nuclear transcript",
+     "count": 762
+    },
+    {
+     "name": "Control region",
+     "count": 340
+    },
+    {
+     "name": "Cytochrome b",
+     "count": 324
+    },
+    {
+     "name": "Other",
+     "count": 187
+    },
+    {
+     "name": "NADH dehydrogenase",
+     "count": 85
+    },
+    {
+     "name": "12S rRNA",
+     "count": 73
+    },
+    {
+     "name": "16S rRNA",
+     "count": 71
+    },
+    {
+     "name": "18S/28S rRNA",
+     "count": 2
+    }
+   ],
+   "sources": {
+    "NCBI": 3000
+   },
+   "length": {
+    "min": 104,
+    "median": 652,
+    "mean": 711,
+    "max": 1500
+   },
+   "gcPercent": 46.4,
+   "example": {
+    "species": "Pseudopleuronectes yokohamae",
+    "accession": "PP897074.1",
+    "marker": "COI",
+    "sequence": "ACTAGCTGGAAATCTAGCACACGCCGGAGCATCAGTAGACCTCACCATTTTCTCACTTCACCTTGCCGGAATTTCATCAATTCTAGGGGCAATCAACTTTATTACTACCATCATCAACATGAAACCAACAGCAGTCACTATGTACCAAATCCCACTATTTGTCTGGGCCGTACTAATCACCGCCGTTCTTCTTCTTCTTTCCCTACCCGTCCTGGCCGCTGGCATTACAATGTTGCTGACAGACCGCAACCTAAACACAACCTTCTTTGACCCTGCCGGAGGGGGTGACCCCATCCTCTACCAACACCTATTC"
+   },
+   "validation": {
+    "support": 595,
+    "precision": 0.8524,
+    "recall": 0.9025,
+    "f1": 0.8767,
+    "confusedWith": [
+     {
+      "name": "Perciformes",
+      "count": 44
+     },
+     {
+      "name": "Clupeiformes",
+      "count": 6
+     },
+     {
+      "name": "Gadiformes",
+      "count": 3
+     }
+    ]
+   }
+  },
+  {
+   "classId": 5,
+   "name": "Decapoda",
+   "rank": "order",
+   "lineage": [
+    "Animalia",
+    "Arthropoda",
+    "Malacostraca",
+    "Decapoda"
+   ],
+   "trainingCount": 8000,
+   "speciesCount": 1157,
+   "genusCount": 444,
+   "topSpecies": [
+    {
+     "name": "Pitho lherminieri",
+     "count": 273
+    },
+    {
+     "name": "Nonala holderi",
+     "count": 206
+    },
+    {
+     "name": "Pilumnus caribaeus",
+     "count": 203
+    },
+    {
+     "name": "Eriocheir japonica",
+     "count": 195
+    },
+    {
+     "name": "Penaeus japonicus",
+     "count": 147
+    },
+    {
+     "name": "Coenobita brevimanus",
+     "count": 128
+    },
+    {
+     "name": "Macrobrachium nipponense",
+     "count": 124
+    },
+    {
+     "name": "Pilumnus gemmatus",
+     "count": 108
+    },
+    {
+     "name": "Pitho aculeata",
+     "count": 102
+    },
+    {
+     "name": "Penaeus merguiensis",
+     "count": 96
+    },
+    {
+     "name": "Faxonius williamsi",
+     "count": 83
+    },
+    {
+     "name": "Pagurus maculosus",
+     "count": 79
+    }
+   ],
+   "markers": [
+    {
+     "name": "COI",
+     "count": 5814
+    },
+    {
+     "name": "Other",
+     "count": 1230
+    },
+    {
+     "name": "Control region",
+     "count": 484
+    },
+    {
+     "name": "Nuclear transcript",
+     "count": 281
+    },
+    {
+     "name": "16S rRNA",
+     "count": 168
+    },
+    {
+     "name": "NADH dehydrogenase",
+     "count": 10
+    },
+    {
+     "name": "Cytochrome b",
+     "count": 8
+    },
+    {
+     "name": "12S rRNA",
+     "count": 4
+    },
+    {
+     "name": "18S/28S rRNA",
+     "count": 1
+    }
+   ],
+   "sources": {
+    "NCBI": 8000
+   },
+   "length": {
+    "min": 133,
+    "median": 576,
+    "mean": 557,
+    "max": 1499
+   },
+   "gcPercent": 36.2,
+   "example": {
+    "species": "Pitho lherminieri",
+    "accession": "PV676198.1",
+    "marker": "COI",
+    "sequence": "TCTTGCTGCTGCAATTGCTCATGCCGGAGCCTCAGTTGATATGGGGATTTTTTCTCTTCATTTAGCAGGAGTCTCATCCATTTTAGGTGCAGTTAATTTTATAACTACAGTCATTAATATACGGTCTTATGGTATAACAATGGATCAGATGCCTTTGTTTGTTTGAGCAGTTTTCATTATTGCAATTCTCTTACTACTATCCCTCCCTGTTCTAGCAGGTGCTATTACTATACTTCTTACTGATCGTAATCTAAATACTTCATTTTTTGATCCTGCAGGAGGGGGAGATCCTATTCTCTATCAACATTTATTT"
+   },
+   "validation": {
+    "support": 1580,
+    "precision": 0.9974,
+    "recall": 0.9671,
+    "f1": 0.982,
+    "confusedWith": [
+     {
+      "name": "Clupeiformes",
+      "count": 17
+     },
+     {
+      "name": "Perciformes",
+      "count": 16
+     },
+     {
+      "name": "Salmoniformes",
+      "count": 9
+     }
+    ]
+   }
+  },
+  {
+   "classId": 6,
+   "name": "Bivalvia",
+   "rank": "class",
+   "lineage": [
+    "Animalia",
+    "Mollusca",
+    "Bivalvia"
+   ],
+   "trainingCount": 6000,
+   "speciesCount": 589,
+   "genusCount": 336,
+   "topSpecies": [
+    {
+     "name": "Tridacna maxima",
+     "count": 259
+    },
+    {
+     "name": "Brachidontes variabilis",
+     "count": 246
+    },
+    {
+     "name": "Magallana sikamea",
+     "count": 229
+    },
+    {
+     "name": "Quadrula quadrula",
+     "count": 113
+    },
+    {
+     "name": "Ruditapes philippinarum",
+     "count": 107
+    },
+    {
+     "name": "Saccostrea mordax",
+     "count": 105
+    },
+    {
+     "name": "Ledella ultima",
+     "count": 98
+    },
+    {
+     "name": "Saccostrea malabonensis",
+     "count": 95
+    },
+    {
+     "name": "Rugalucina vietnamica",
+     "count": 79
+    },
+    {
+     "name": "Mytella strigata",
+     "count": 79
+    },
+    {
+     "name": "Calyptogena pacifica",
+     "count": 79
+    },
+    {
+     "name": "Geukensia demissa",
+     "count": 77
+    }
+   ],
+   "markers": [
+    {
+     "name": "COI",
+     "count": 4409
+    },
+    {
+     "name": "Other",
+     "count": 730
+    },
+    {
+     "name": "NADH dehydrogenase",
+     "count": 385
+    },
+    {
+     "name": "Nuclear transcript",
+     "count": 171
+    },
+    {
+     "name": "Control region",
+     "count": 125
+    },
+    {
+     "name": "16S rRNA",
+     "count": 121
+    },
+    {
+     "name": "Cytochrome b",
+     "count": 59
+    }
+   ],
+   "sources": {
+    "NCBI": 6000
+   },
+   "length": {
+    "min": 102,
+    "median": 600,
+    "mean": 599,
+    "max": 1499
+   },
+   "gcPercent": 38.1,
+   "example": {
+    "species": "Tridacna maxima",
+    "accession": "PQ146680.1",
+    "marker": "COI",
+    "sequence": "TTGACTTGTGCCATTAATAATAGTAATACCAGACATGCACTTTCCTCGGCTAAATAACCTGAGGTTTTGGTTTGTACCTAATGCATTCTTTTTGTTAGGAGTGTCTGGATTTGTAGAAGGAGGAATGGGTGCCGGTTGAACAATCTACCCACCACTAACTTCAATCGATTTCTTAAGAGACCCATCTATAGATCTTGCTATTTTTTCTCTTCACTTAGGCGGTGCTTCCTCTATTGCAGCTAGGTTAAATTTCGCAAGGACTGTGGCTAATATACGGCATCAAAAACGTGGCTTCCATAAAATTCCTATATTTCCAGTCTCATTAGGAATTACAGCGTTGCTTCTTATTGTGGCAATACCTGTCTTAGCTGGGGCTTTAACTATGCTGTTATTTGACCGCAATTTTGCCACATCATTTTTT"
+   },
+   "validation": {
+    "support": 1233,
+    "precision": 0.9799,
+    "recall": 0.9862,
+    "f1": 0.983,
+    "confusedWith": [
+     {
+      "name": "Gastropoda",
+      "count": 6
+     },
+     {
+      "name": "Salmoniformes",
+      "count": 5
+     },
+     {
+      "name": "Clupeiformes",
+      "count": 3
+     }
+    ]
+   }
+  },
+  {
+   "classId": 7,
+   "name": "Gastropoda",
+   "rank": "class",
+   "lineage": [
+    "Animalia",
+    "Mollusca",
+    "Gastropoda"
+   ],
+   "trainingCount": 6000,
+   "speciesCount": 1056,
+   "genusCount": 593,
+   "topSpecies": [
+    {
+     "name": "Pyrgulopsis pilsbryana",
+     "count": 221
+    },
+    {
+     "name": "Physella acuta",
+     "count": 170
+    },
+    {
+     "name": "Meghimatium fruhstorferi",
+     "count": 124
+    },
+    {
+     "name": "Hyalocylis striata",
+     "count": 66
+    },
+    {
+     "name": "Echinolittorina radiata",
+     "count": 61
+    },
+    {
+     "name": "Reishia clavigera",
+     "count": 60
+    },
+    {
+     "name": "Rhagada convicta",
+     "count": 53
+    },
+    {
+     "name": "Conus miliaris",
+     "count": 49
+    },
+    {
+     "name": "Onchidella floridana",
+     "count": 49
+    },
+    {
+     "name": "Phymorhynchus ovatus",
+     "count": 47
+    },
+    {
+     "name": "Karaftohelix editha",
+     "count": 45
+    },
+    {
+     "name": "Elysia zuleicae",
+     "count": 45
+    }
+   ],
+   "markers": [
+    {
+     "name": "COI",
+     "count": 4614
+    },
+    {
+     "name": "Other",
+     "count": 996
+    },
+    {
+     "name": "16S rRNA",
+     "count": 260
+    },
+    {
+     "name": "Nuclear transcript",
+     "count": 124
+    },
+    {
+     "name": "NADH dehydrogenase",
+     "count": 4
+    },
+    {
+     "name": "12S rRNA",
+     "count": 1
+    },
+    {
+     "name": "Cytochrome b",
+     "count": 1
+    }
+   ],
+   "sources": {
+    "NCBI": 6000
+   },
+   "length": {
+    "min": 154,
+    "median": 646,
+    "mean": 601,
+    "max": 1492
+   },
+   "gcPercent": 36.0,
+   "example": {
+    "species": "Pyrgulopsis pilsbryana",
+    "accession": "PX793319.1",
+    "marker": "COI",
+    "sequence": "TACTTTATATATTTTATTTGGTATATGATCAGGCTTAGTTGGTACAGCTCTAAGTCTGTTAATTCGGGCAGAGCTAGGACAACCTGGTGCACTTTTAGGAGATGATCAGCTATACAATGTAATTGTTACTGCTCATGCTTTTGTTATAATTTTTTTTCTTGTAATACCAATAATAATTGGTGGATTTGGCAATTGGCTTGTGCCATTAATGCTCGGTGCTCCAGATATAGCATTTCCTCGCCTAAATAATATAAGATTTTGACTTTTACCCCCTGCCTTATTACTACTATTATCATCAGCTGCTGTAGAAAGGGGTGCAGGAACTGGATGAACTGTATACCCACCACTATCTAGAAATTTAGCTCATGCTGGAGGCTCAGTTGACTTAGCTATTTTTTCCTTACACTTGGCTGGTGTTTCTTCTATTTTAGGTGCTGTAAATTTTATTACAACAATTATTAACATGCGATGACGAGGAATGCAGTTTGAACGATTGCCTTTATTTGTATGATCTGTAAAAATCACTGCTATCTTACTTCTATTATCTCTCCCAGTTCTGGCCGGTGCTATTACAATACTTTTAACAGATCGAAACTTTAATACTGCTTTTTTTGACCCTGCTGGCGGAGGTGACCCTATTTTATATCAACATCTATTT"
+   },
+   "validation": {
+    "support": 1181,
+    "precision": 0.9915,
+    "recall": 0.9839,
+    "f1": 0.9877,
+    "confusedWith": [
+     {
+      "name": "Bivalvia",
+      "count": 9
+     },
+     {
+      "name": "Salmoniformes",
+      "count": 6
+     },
+     {
+      "name": "Perciformes",
+      "count": 2
+     }
+    ]
+   }
+  }
+ ]
+}

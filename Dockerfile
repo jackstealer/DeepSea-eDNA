@@ -18,7 +18,6 @@ RUN pip install --no-cache-dir -r requirements.txt
 # Application code, MLOps modules and the trained model
 COPY backend/app ./app
 COPY backend/alembic.ini ./alembic.ini
-COPY backend/__init__.py .
 COPY mlops ./mlops
 COPY ml_models ./ml_models
 
