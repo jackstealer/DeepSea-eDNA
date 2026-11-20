@@ -17,7 +17,7 @@
   <img src="https://img.shields.io/badge/Training_data-48%2C000_sequences-0EA5E9?style=flat-square" alt="Data"/>
   <img src="https://img.shields.io/badge/Taxa-8-6366F1?style=flat-square" alt="Taxa"/>
   <img src="https://img.shields.io/badge/Tests-47_passing-22C55E?style=flat-square&logo=pytest&logoColor=white" alt="Tests"/>
-  <img src="https://img.shields.io/badge/License-MIT-F59E0B?style=flat-square" alt="License"/>
+  <a href="LICENSE"><img src="https://img.shields.io/badge/License-MIT-F59E0B?style=flat-square" alt="License"/></a>
 </p>
 
 <p>
@@ -822,6 +822,7 @@ DeepSea-eDNA/
 ├── docker-compose.yml            # Full stack: frontend, API, PostgreSQL, Redis, MLflow
 ├── Dockerfile                    # API image (CPU PyTorch, non-root)
 ├── Dockerfile.frontend           # Multi-stage: Node build → nginx
+├── LICENSE                       # MIT
 └── README.md
 ```
 
@@ -899,7 +900,7 @@ Hard refresh (<kbd>Ctrl</kbd>+<kbd>Shift</kbd>+<kbd>R</kbd>). `index.html` is se
 
 ## 📄 License
 
-Released under the **MIT License**.
+Released under the **[MIT License](LICENSE)**.
 
 <div align="center">
 
