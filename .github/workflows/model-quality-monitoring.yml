@@ -1,0 +1,40 @@
+name: Model Quality Monitoring
+
+on:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  monitor-retrain:
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    env:
+      PYTHONPATH: ${{ github.workspace }}/backend:${{ github.workspace }}
+      MPLBACKEND: Agg
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+          cache: pip
+          cache-dependency-path: backend/requirements.txt
+      - name: Install monitoring dependencies
+        run: |
+          python -m pip install --upgrade pip
+          python -m pip install torch --index-url https://download.pytorch.org/whl/cpu
+          python -m pip install numpy scikit-learn pydantic-settings
+      - name: Run monitoring and retraining workflow
+        run: |
+          python mlops/monitor_retrain.py \
+            --new-data data/incoming/deepsea_edna_synthetic_new_batch.csv \
+            --output-dir monitoring-output \
+            --epochs 1 \
+            --per-class 20 \
+            --device cpu
+      - name: Publish execution evidence
+        uses: actions/upload-artifact@v4
+        with:
+          name: model-quality-monitoring-${{ github.run_number }}
+          path: monitoring-output
