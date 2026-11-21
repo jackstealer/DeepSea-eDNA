@@ -97,6 +97,12 @@ export const OCEAN = {
   /** API health: plankton fade to grey while unhealthy. */
   health: { ease: 1.2 },
 
+  /**
+   * ★ Reduced motion (OS "animation effects" off): the ocean keeps drifting, just slower, like the
+   * 3D scenes' gentle mode. 1 = full speed; lower is calmer.
+   */
+  reducedMotion: { speed: 0.5 },
+
   /** Performance guard rails. */
   performance: {
     dpr: [2, 1.5, 1], // pixel-density cap per quality level (0 = full)

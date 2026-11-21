@@ -59,14 +59,13 @@ export function createQualityGovernor() {
   };
 }
 
-/** The loop runs only when visible, motion is allowed, and the window isn't long unfocused. */
-export function shouldAnimate(s: {
-  hidden: boolean;
-  reducedMotion: boolean;
-  blurredAt: number | null;
-  now: number;
-  blurGraceMs: number;
-}): boolean {
-  if (s.hidden || s.reducedMotion) return false;
+/** The loop runs only while the tab is visible and the window isn't long unfocused. */
+export function shouldAnimate(s: { hidden: boolean; blurredAt: number | null; now: number; blurGraceMs: number }): boolean {
+  if (s.hidden) return false;
   return s.blurredAt === null || s.now - s.blurredAt < s.blurGraceMs;
+}
+
+/** Time scale for the scene: reduced motion slows the ocean down instead of freezing it. */
+export function motionSpeed(reducedMotion: boolean): number {
+  return reducedMotion ? OCEAN.reducedMotion.speed : 1;
 }

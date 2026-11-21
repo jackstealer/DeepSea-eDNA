@@ -1,5 +1,6 @@
 import { expect, test } from 'vitest';
-import { createQualityGovernor, particleBudget, shouldAnimate } from './oceanQuality';
+import { OCEAN } from './oceanConfig';
+import { createQualityGovernor, motionSpeed, particleBudget, shouldAnimate } from './oceanQuality';
 
 test('small screens get fewer particles; lower quality levels shed load', () => {
   expect(particleBudget(1440, 0)).toEqual({ snow: 220, plankton: 40, caustics: true, maxDpr: 2 });
@@ -31,10 +32,16 @@ test('one janky frame does not change quality', () => {
 });
 
 test('animates only when visible, focused (or briefly unfocused) and motion is allowed', () => {
-  const base = { hidden: false, reducedMotion: false, blurredAt: null, now: 100_000, blurGraceMs: 20_000 };
+  const base = { hidden: false, blurredAt: null, now: 100_000, blurGraceMs: 20_000 };
   expect(shouldAnimate(base)).toBe(true);
   expect(shouldAnimate({ ...base, hidden: true })).toBe(false);
-  expect(shouldAnimate({ ...base, reducedMotion: true })).toBe(false);
   expect(shouldAnimate({ ...base, blurredAt: 90_000 })).toBe(true); // unfocused for 10 s
   expect(shouldAnimate({ ...base, blurredAt: 70_000 })).toBe(false); // unfocused for 30 s
+});
+
+test('reduced motion keeps the ocean moving, just slower (like the 3D scenes)', () => {
+  expect(motionSpeed(false)).toBe(1);
+  expect(motionSpeed(true)).toBe(OCEAN.reducedMotion.speed);
+  expect(OCEAN.reducedMotion.speed).toBeGreaterThan(0);
+  expect(OCEAN.reducedMotion.speed).toBeLessThan(1);
 });

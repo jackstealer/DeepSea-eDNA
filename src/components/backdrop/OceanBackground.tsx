@@ -3,7 +3,7 @@ import { useAuthStore } from '@/store/authStore';
 import { usePrefersReducedMotion } from '@/components/three/Scene3DGate';
 import { onOceanEvent } from '@/lib/oceanEvents';
 import { OCEAN } from './oceanConfig';
-import { createQualityGovernor, shouldAnimate } from './oceanQuality';
+import { createQualityGovernor, motionSpeed, shouldAnimate } from './oceanQuality';
 import { createOceanScene, type OceanScene } from './oceanScene';
 
 /**
@@ -12,8 +12,8 @@ import { createOceanScene, type OceanScene } from './oceanScene';
  * and sits below every layer, so modals, toasts and dropdowns always stay on top.
  *
  * One requestAnimationFrame loop drives the canvas; nothing here re-renders React per frame.
- * The loop stops when the tab is hidden, after the window has been unfocused for a while, and
- * entirely under reduced motion (a single calm still frame is drawn instead).
+ * The loop stops when the tab is hidden and after the window has been unfocused for a while.
+ * Under reduced motion it keeps running, slower (OCEAN.reducedMotion.speed), like the 3D scenes.
  */
 export function OceanBackground() {
   const theme = useAuthStore((s) => s.theme);
@@ -22,7 +22,7 @@ export function OceanBackground() {
   const sinkRef = useRef<HTMLDivElement>(null);
   const sceneRef = useRef<OceanScene | null>(null);
   const reducedRef = useRef(reducedMotion);
-  const reconcileRef = useRef<() => void>(() => {});
+  const runningRef = useRef(false);
   const paintStillRef = useRef<() => void>(() => {});
   const palette = OCEAN.palette[theme];
 
@@ -59,14 +59,14 @@ export function OceanBackground() {
       last = now;
       const level = governor.sample(frameMs);
       if (level !== scene.level) scene.setQuality(level);
-      scene.frame(Math.min(frameMs, 50) / 1000); // clamp: a long stall must not teleport particles
+      // clamp: a long stall must not teleport particles
+      scene.frame((Math.min(frameMs, 50) / 1000) * motionSpeed(reducedRef.current));
       setSink(scene.sinkOpacity);
     };
 
     const reconcile = () => {
       const run = shouldAnimate({
         hidden: document.hidden,
-        reducedMotion: reducedRef.current,
         blurredAt,
         now: performance.now(),
         blurGraceMs: OCEAN.performance.pauseAfterBlurMs,
@@ -78,9 +78,8 @@ export function OceanBackground() {
         cancelAnimationFrame(raf);
         raf = 0;
       }
-      if (!run && reducedRef.current) paintStill();
+      runningRef.current = raf !== 0;
     };
-    reconcileRef.current = reconcile;
 
     const resizeNow = () => {
       resizeQueued = 0;
@@ -91,13 +90,21 @@ export function OceanBackground() {
       if (!resizeQueued) resizeQueued = requestAnimationFrame(resizeNow); // coalesce bursts of resize events
     };
     // The window 'focus' event isn't guaranteed after an unfocused pause (devtools, iframes, some
-    // window managers), so any sign of the user being back resumes the loop when the page has focus.
+    // window managers), so any sign of the user being back resumes the loop. Hovering a window that
+    // isn't focused (e.g. the app on screen while typing elsewhere) counts as watching it too: it
+    // restarts the grace period instead of leaving the ocean frozen.
     const resumeIfBack = () => {
-      if (blurredAt !== null && document.hasFocus()) onFocus();
+      if (blurredAt === null) return;
+      if (document.hasFocus()) {
+        onFocus();
+      } else {
+        onBlur();
+        reconcile();
+      }
     };
     const onPointerMove = (e: PointerEvent) => {
       resumeIfBack();
-      if (!reducedRef.current) scene.pointerMove(e.clientX, e.clientY, e.timeStamp);
+      scene.pointerMove(e.clientX, e.clientY, e.timeStamp);
     };
     const onVisibility = () => {
       if (!document.hidden) resumeIfBack();
@@ -124,7 +131,7 @@ export function OceanBackground() {
       if (event.type === 'health') {
         scene.setHealthy(event.healthy);
         if (!raf) paintStill();
-      } else if (!reducedRef.current) {
+      } else {
         scene.ripple(event.type === 'novel-taxon' ? 'novel' : 'success');
       }
     });
@@ -158,14 +165,12 @@ export function OceanBackground() {
   }, []);
 
   useEffect(() => {
-    reducedRef.current = reducedMotion;
-    if (reducedMotion) sceneRef.current?.pointerLeave();
-    reconcileRef.current();
+    reducedRef.current = reducedMotion; // read by the loop each frame
   }, [reducedMotion]);
 
   useEffect(() => {
     sceneRef.current?.setTheme(theme);
-    if (reducedRef.current) paintStillRef.current();
+    if (!runningRef.current) paintStillRef.current();
   }, [theme]);
 
   return (
