@@ -3,7 +3,7 @@
 <img src="https://capsule-render.vercel.app/api?type=waving&color=0:06101F,45:0E7490,100:22D3EE&height=210&section=header&text=DeepSea%20eDNA%20AI&fontSize=52&fontColor=ffffff&fontAlignY=36&desc=Marine%20biodiversity%20from%20environmental%20DNA%20%E2%80%A2%20end-to-end%20MLOps&descAlignY=58&descSize=17&animation=fadeIn" width="100%" alt="DeepSea eDNA AI"/>
 
 <a href="https://app.16-179-237-170.sslip.io">
-  <img src="https://readme-typing-svg.demolab.com?font=Fira+Code&weight=600&size=20&duration=2800&pause=700&color=22D3EE&center=true&vCenter=true&width=760&lines=%F0%9F%A7%AC+DNA+sequence+in+%E2%86%92+marine+taxon+out;%F0%9F%A7%A0+CNN+%2B+self-attention+%E2%80%A2+95.0%25+held-out+accuracy;%F0%9F%93%A6+MLflow+registry+%E2%80%A2+models%3A%2F%2Fmarine-edna-classifier%40champion;%F0%9F%90%B3+Docker+%E2%80%A2+GitHub+Actions+%E2%80%A2+AWS+EC2+%2B+HTTPS" alt="Typing intro"/>
+  <img src="https://readme-typing-svg.demolab.com?font=Fira+Code&weight=600&size=20&duration=2800&pause=700&color=22D3EE&center=true&vCenter=true&width=760&lines=%F0%9F%A7%AC+DNA+sequence+in+%E2%86%92+marine+taxon+out;%F0%9F%A7%A0+CNN+%2B+self-attention+%E2%80%A2+95.0%25+held-out+accuracy;%F0%9F%93%A6+MLflow+registry+%E2%80%A2+models%3A%2F%2Fmarine-edna-classifier%40champion;%F0%9F%90%B3+Docker+%E2%80%A2+GitHub+Actions+%E2%80%A2+AWS+EC2+%2B+HTTPS;%F0%9F%8C%8A+Cinematic+3D+UI+over+a+live+deep-sea+background" alt="Typing intro"/>
 </a>
 
 <p>
@@ -16,7 +16,8 @@
   <img src="https://img.shields.io/badge/Accuracy-95.0%25-10B981?style=flat-square" alt="Accuracy"/>
   <img src="https://img.shields.io/badge/Training_data-48%2C000_sequences-0EA5E9?style=flat-square" alt="Data"/>
   <img src="https://img.shields.io/badge/Taxa-8-6366F1?style=flat-square" alt="Taxa"/>
-  <img src="https://img.shields.io/badge/Tests-56_passing-22C55E?style=flat-square&logo=pytest&logoColor=white" alt="Tests"/>
+  <img src="https://img.shields.io/badge/Tests-56_passing-22C55E?style=flat-square&logo=pytest&logoColor=white" alt="Backend tests"/>
+  <img src="https://img.shields.io/badge/Frontend_tests-24_passing-22C55E?style=flat-square&logo=vitest&logoColor=white" alt="Frontend tests"/>
   <a href="LICENSE"><img src="https://img.shields.io/badge/License-MIT-F59E0B?style=flat-square" alt="License"/></a>
 </p>
 
@@ -29,6 +30,8 @@
   <img src="https://img.shields.io/badge/Redis-7-DC382D?style=flat-square&logo=redis&logoColor=white" alt="Redis"/>
   <img src="https://img.shields.io/badge/React-19-61DAFB?style=flat-square&logo=react&logoColor=black" alt="React"/>
   <img src="https://img.shields.io/badge/TypeScript-5-3178C6?style=flat-square&logo=typescript&logoColor=white" alt="TypeScript"/>
+  <img src="https://img.shields.io/badge/Three.js-r170-000000?style=flat-square&logo=threedotjs&logoColor=white" alt="Three.js"/>
+  <img src="https://img.shields.io/badge/GSAP-3-88CE02?style=flat-square&logo=greensock&logoColor=black" alt="GSAP"/>
   <img src="https://img.shields.io/badge/Docker-Compose-2496ED?style=flat-square&logo=docker&logoColor=white" alt="Docker"/>
   <img src="https://img.shields.io/badge/AWS-EC2_%2B_CloudFormation-FF9900?style=flat-square&logo=amazonwebservices&logoColor=white" alt="AWS"/>
 </p>
@@ -42,6 +45,7 @@
 [🔄 CI/CD](#-cicd-pipelines) •
 [☁️ AWS](#%EF%B8%8F-deployment-on-aws) •
 [🚀 Quick start](#-quick-start) •
+[🎨 Look & feel](#-look-and-feel) •
 [📚 API](#-api-reference)
 
 </div>
@@ -52,9 +56,15 @@
 
 <div align="center">
 
+<img src="docs/assets/screenshot-landing.png" width="92%" alt="Cinematic homepage: a 3D glass DNA helix over the live deep-sea background"/>
+
+<sub>👆 The public homepage: a 3D glass DNA helix, smooth scrolling and scroll-driven reveals over a live deep-sea background</sub>
+
+<br/><br/>
+
 <img src="docs/assets/demo-tour.gif" width="92%" alt="Tour of the DeepSea eDNA AI web app: sign in, dashboard, classify, taxa explorer, model registry, history"/>
 
-<sub>👆 Sign in → personal dashboard → classify a sequence → explore taxa → MLflow-backed model registry → your history</sub>
+<sub>👆 Sign in → personal dashboard → classify a sequence → explore taxa → MLflow-backed model registry → your history<br/>(the GIFs were recorded before the cinematic redesign: same flows, older look)</sub>
 
 </div>
 
@@ -98,6 +108,7 @@
 - [♻️ Retraining and the approval gate](#%EF%B8%8F-retraining-and-the-approval-gate)
 - [☁️ Deployment on AWS](#%EF%B8%8F-deployment-on-aws)
 - [🖥️ The web app, page by page](#%EF%B8%8F-the-web-app-page-by-page)
+- [🎨 Look and feel](#-look-and-feel)
 - [🔐 Security](#-security)
 - [🚀 Quick start](#-quick-start)
 - [📚 API reference](#-api-reference)
@@ -162,7 +173,7 @@ Every animal in the ocean sheds tiny traces of DNA (skin cells, mucus, waste) in
 ### 🚢 Engineering
 - **FastAPI** + PostgreSQL + Alembic migrations
 - **Docker compose** stack (6 services)
-- **56 pytest tests**, CI on SQLite **and** PostgreSQL
+- **56 pytest + 24 Vitest tests**, CI on SQLite **and** PostgreSQL
 - **GitHub Actions**: lint → test → E2E → publish to GHCR
 - **AWS EC2** via CloudFormation, auto-HTTPS with Caddy
 
@@ -172,7 +183,8 @@ Every animal in the ocean sheds tiny traces of DNA (skin cells, mucus, waste) in
 <td valign="top">
 
 ### 🖥️ Web app
-- React 19 + TypeScript + Tailwind, light/dark
+- React 19 + TypeScript + Tailwind, cinematic dark theme
+- **Live deep-sea background**, 3D helix (Three.js), GSAP + Lenis motion
 - Single, batch and **file (FASTA/FASTQ)** analysis
 - Interactive **Taxa Explorer** built from real data
 - Personal history, exports (JSON/CSV/TSV/BIOM/FASTA)
@@ -496,7 +508,7 @@ sequenceDiagram
 
 ## 🔄 CI/CD pipelines
 
-Three GitHub Actions workflows live in `.github/workflows/`:
+Four GitHub Actions workflows live in `.github/workflows/`:
 
 ```mermaid
 flowchart LR
@@ -517,6 +529,7 @@ flowchart LR
 | **CI/CD Pipeline** `ci-cd.yml` | push, PR, tags, manual | lint · 56 tests on 2 databases · frontend build · Trivy/Bandit · full-stack E2E with MLflow · publish images to **GHCR** |
 | **Model Retraining** `model-training.yml` | manual or `repository_dispatch: retrain` | train → register `@challenger` → approval gate → summary + artifacts |
 | **Pull Request Checks** `pr-checks.yml` | PR opened/updated | change summary, warns on PRs > 1,000 lines |
+| **Model Quality Monitoring** `model-quality-monitoring.yml` | manual | runs the [labelled-batch quality check](#labelled-batch-quality-monitoring) and publishes the evaluation and gate decision as artifacts |
 
 > ✅ This is **Continuous Delivery**: every change on `main` produces tested, versioned images. Deploying to AWS is one command.
 
@@ -609,8 +622,14 @@ aws cloudformation wait stack-create-complete --stack-name deepsea-edna
 aws cloudformation describe-stacks --stack-name deepsea-edna --query "Stacks[0].Outputs" --output table
 ```
 
-**Update to the latest `main`:** `cd /opt/deepsea && git pull && docker compose -f docker-compose.yml -f deploy/aws/docker-compose.aws.yml up -d --build` (run through SSM).
-Full guide: [`deploy/aws/README.md`](deploy/aws/README.md)
+**Update to the latest `main`** (no SSH: one SSM command; the instance pulls `main` and rebuilds, data stays):
+
+```bash
+aws ssm send-command --region ap-southeast-2 --instance-ids <InstanceId> --document-name AWS-RunShellScript \
+  --parameters 'commands=["export HOME=/root","cd /opt/deepsea","git config --global --add safe.directory /opt/deepsea","git pull --ff-only origin main","docker compose -f docker-compose.yml -f deploy/aws/docker-compose.aws.yml up -d --build"]'
+```
+
+`HOME` must be set because SSM shells have none. The rebuild takes about 10 minutes on a `t3.small`. Full guide: [`deploy/aws/README.md`](deploy/aws/README.md)
 
 </details>
 
@@ -625,16 +644,46 @@ Full guide: [`deploy/aws/README.md`](deploy/aws/README.md)
 
 | Page | 👀 What you can do | 👤 Who |
 |---|---|---|
-| 🔑 **Login** | Email/password or **Google / GitHub**, create account. Stats read from the measured catalog | everyone |
-| 🏠 **Dashboard** | Your classifications, 7-day activity, average confidence, novel count, top taxa, recent jobs. Admins also see CPU / memory / disk and component health | everyone (+admin) |
-| 🧬 **Classify** | **Single** sequence (probability chart for all 8 taxa, lineage, novelty), **Batch** FASTA, **File upload** (FASTA/FASTQ background job with diversity indices and exports) | everyone |
+| 🌐 **Homepage** | Cinematic introduction for visitors: 3D helix, how it works, the taxa, the platform, FAQ. Signed-in users go straight to their dashboard | signed out |
+| 🔑 **Login** | Email/password or **Google / GitHub** (buttons appear only for configured providers), create account. Stats read from the measured catalog | everyone |
+| 🏠 **Dashboard** | Your classifications, 7-day activity, average confidence, novel count, top taxa, recent jobs. Admins also see CPU / memory / disk (warning at 90 %, critical at 95 %, with the reason shown) and component health | everyone (+admin) |
+| 🧬 **Classify** | **Single** sequence (probability chart for all 8 taxa, lineage, novelty), **Batch** FASTA, **File upload** (FASTA/FASTQ background job with diversity indices and exports). A 3D helix draws the pasted sequence | everyone |
 | 🕘 **My History** | Every sequence you classified and every file analysis, filter by taxon, paginated, private | everyone |
-| 🐟 **Taxa Explorer** | Taxonomy tree, search & sort, per-taxon precision/recall/F1, "mistaken for" chips, top species (NCBI links), marker genes, **live test with a real GenBank sequence** | everyone |
+| 🐟 **Taxa Explorer** | 3D taxonomy constellation, taxonomy tree, search & sort, per-taxon precision/recall/F1, "mistaken for" chips, top species (NCBI links), marker genes, **live test with a real GenBank sequence** | everyone |
 | 📦 **Model Registry** | Live **serving model** card (`models:/…@champion`, version, run), reload from MLflow, compare / activate / rollback / archive versions | view: all · manage: scientist+ |
 | 🧪 **Experiments** | Create and run A/B experiments, see confidence intervals, p-value and the winner | view: all · manage: scientist+ |
 | 📈 **Monitoring** | Live CPU/memory, requests & errors per minute, cache telemetry, clear cache | admin |
 | 🛡️ **Admin** | Users, roles, enable/disable, revoked tokens, role → permission matrix | admin |
-| ⚙️ **Settings** | Profile, theme, backend URL & connection test | everyone |
+| ⚙️ **Settings** | Profile and sign-in methods (development builds also offer a backend-URL override and connection test) | everyone |
+
+---
+
+## 🎨 Look and feel
+
+The public homepage and the signed-in app share one cinematic, dark deep-sea visual language: the view from a submersible window at night.
+
+| | |
+|---|---|
+| 🏠 **Homepage** | A 3D glass DNA helix (React Three Fiber), **Lenis** smooth scrolling and **GSAP** scroll-driven reveals |
+| 🌊 **Live background** | One full-screen 2D canvas behind every page, kept alive across navigation: depth gradient and vignette, swaying god rays, caustic shimmer, marine snow at three parallax depths, glowing **plankton drawn to the cursor** (a quick flick scatters them) and a faint rotating DNA helix. Scrolling darkens the water as if you were sinking |
+| 🔔 **Reacts to the app** | A cyan ripple when a classification succeeds, a violet ripple and brighter plankton for a **novel taxon**, plankton fading to grey while the API is unhealthy |
+| 🪟 **Glass UI** | Frosted sidebar, header, cards and empty states with a cyan hover glow. Text over the water keeps **WCAG AA** contrast |
+| 🧬 **3D views** | The sequence helix on Classify and the taxonomy constellation in the Taxa Explorer |
+
+<details>
+<summary><b>⚙️ Performance, accessibility and tuning</b></summary>
+
+<br/>
+
+- **One animation loop**, frame-rate independent, no React re-renders per frame (about 1 ms per frame). It never takes clicks and sits below modals, toasts and menus.
+- Pixel density capped at 2×, fewer particles on small screens, and quality steps down automatically when frames run slow.
+- Pauses when the tab is hidden or the window has been ignored for 20 s. Moving the mouse over it wakes it.
+- **Reduced motion** (the OS "animation effects" setting): motion keeps going gently instead of stopping, the 3D scenes at ⅓ speed and the ocean at ½. The preloader, smooth scroll and count-ups are skipped.
+- **Every tunable** lives in one labelled object, `OCEAN` in [`src/components/backdrop/oceanConfig.ts`](src/components/backdrop/oceanConfig.ts). ★ marks the levers for a calmer or more dramatic look (ray, caustic and helix opacity, plankton glow and cursor pull, parallax, ripple strength, particle counts).
+- Any part of the app can trigger an effect with `emitOceanEvent` from [`src/lib/oceanEvents.ts`](src/lib/oceanEvents.ts).
+- A pale "shallow water" version for a light theme is built in, ready for when the light theme returns. The app is dark-only for now.
+
+</details>
 
 ---
 
@@ -654,7 +703,7 @@ Full guide: [`deploy/aws/README.md`](deploy/aws/README.md)
 | 🚦 Brute force | **10 login/register attempts per minute per IP** → HTTP 429 (real IP via trusted proxy header) |
 | 🌐 OAuth | Authorization-code flow, signed `state` bound to an httpOnly cookie, tokens returned in the URL **fragment** |
 | 🙈 Privacy | Users only see their own history, jobs and exports. Path traversal blocked |
-| 🧱 Headers / CORS | `X-Frame-Options: DENY`, `nosniff`, Referrer & Permissions policies. CORS limited to the app origin |
+| 🧱 Headers / CORS | `X-Frame-Options: DENY`, `nosniff`, Referrer & Permissions policies. CORS limited to the app origin (development also accepts this machine's `127.0.0.1` / LAN addresses) |
 | 🐳 Containers | API runs as a **non-root** user. DB and Redis are never published |
 
 </details>
@@ -707,7 +756,7 @@ npm install && npm run dev                              # http://localhost:3000
 
 - **Google:** Cloud Console → APIs & Services → Credentials → OAuth client (Web). Redirect URI `http://localhost:8000/auth/oauth/google/callback` (your `BACKEND_PUBLIC_URL` in production). Set `GOOGLE_CLIENT_ID` / `GOOGLE_CLIENT_SECRET`.
 - **GitHub:** Settings → Developer settings → OAuth Apps. Callback `http://localhost:8000/auth/oauth/github/callback`. Set `GITHUB_CLIENT_ID` / `GITHUB_CLIENT_SECRET`.
-- Restart the backend. Buttons appear only for configured providers.
+- Restart the backend. Buttons appear only for configured providers, and the backend logs each provider's callback URL at startup: the exact value to register.
 
 </details>
 
@@ -780,12 +829,16 @@ python -m pytest tests -v                                                   # SQ
 TEST_DATABASE_URL=postgresql://user:pass@localhost:5432/test python -m pytest tests -v
 python ../scripts/smoke_test.py --api http://localhost:8000 --mlflow http://localhost:5000 \
   --email you@example.com --expect-source mlflow                            # end-to-end
+
+npm test                                                                    # frontend (Vitest), from the repo root
 ```
 
 | Suite | Covers |
 |---|---|
 | `test_integration.py` | accounts, tokens, RBAC, predictions & history privacy, file analysis + exports, OAuth (incl. forged state), rate limiting, security headers |
 | `test_mlflow.py` | bootstrap once, champion matches local model, pyfunc interface, **approval gate**, model-source modes, **hot reload** |
+| `test_cors.py` · `test_oauth_redirects.py` · `test_health_thresholds.py` | dev CORS origins, the OAuth callback URLs logged at startup, 90 % / 95 % resource thresholds |
+| Vitest (`src/**/*.test.ts`) | ocean background quality, pausing and reduced-motion speed, the ocean event bus, 3D gentle motion, scroll reveals and count-ups, auth store, display helpers |
 | `smoke_test.py` | a live stack: health → MLflow champion → login → served from MLflow → prediction → history → frontend |
 
 ---
@@ -816,22 +869,28 @@ DeepSea-eDNA/
 │   ├── requirements.txt          # API runtime dependencies
 │   └── requirements-dev.txt      # + test dependencies
 ├── mlops/                        # A/B testing, model versioning, monitoring,
-│                                 #   cache manager, export formats
+│                                 #   cache manager, export formats,
+│                                 #   monitor_retrain.py (labelled-batch quality gate)
 ├── ml_models/marine_model/       # Bundled model: weights, config, taxonomy map
 ├── data/training/marine_diverse/ # Training dataset (8 classes, 48,000 sequences)
+├── data/incoming/                # New labelled batches for quality monitoring
 ├── scripts/
 │   ├── smoke_test.py             # End-to-end check of a running stack (used in CI)
 │   └── build_taxa_catalog.py     # Regenerates src/data/taxaCatalog.json
 ├── src/                          # React + TypeScript frontend
-│   ├── components/               # Layout, auth, UI primitives
+│   ├── components/
+│   │   ├── backdrop/             # Live deep-sea canvas background (oceanConfig.ts = tunables)
+│   │   ├── three/                # 3D scenes: glass helix, sequence helix, taxa constellation
+│   │   ├── landing/, motion/     # Homepage sections, page transitions and reveals
+│   │   └── layout/, ui/, auth/…  # App shell, glass UI primitives, route guards
 │   ├── data/                     # Taxa catalog (generated) + curated descriptions
-│   ├── pages/                    # Routed pages
-│   └── lib/, store/, types/      # API client, state, shared types
+│   ├── pages/                    # Homepage + routed app pages
+│   └── lib/, store/, types/      # API client, ocean event bus, GSAP/Lenis helpers, state, types
 ├── deploy/
 │   ├── nginx.conf                # Frontend container web server
 │   └── aws/                      # EC2 CloudFormation stack, Caddy HTTPS, compose override
 ├── docs/assets/                  # README GIFs and screenshots
-├── .github/workflows/            # CI/CD, PR checks, model retraining
+├── .github/workflows/            # CI/CD, PR checks, model retraining, quality monitoring
 ├── docker-compose.yml            # Full stack: frontend, API, PostgreSQL, Redis, MLflow
 ├── Dockerfile                    # API image (CPU PyTorch, non-root)
 ├── Dockerfile.frontend           # Multi-stage: Node build → nginx
@@ -852,7 +911,7 @@ DeepSea-eDNA/
 | 🧠 ML | ![PyTorch](https://img.shields.io/badge/-PyTorch-EE4C2C?logo=pytorch&logoColor=white) ![NumPy](https://img.shields.io/badge/-NumPy-013243?logo=numpy&logoColor=white) ![Biopython](https://img.shields.io/badge/-Biopython-2E7D32) ![Optuna](https://img.shields.io/badge/-Optuna-2F4F8F) |
 | 📦 MLOps | ![MLflow](https://img.shields.io/badge/-MLflow-0194E2?logo=mlflow&logoColor=white) ![Prometheus](https://img.shields.io/badge/-Prometheus-E6522C?logo=prometheus&logoColor=white) ![Redis](https://img.shields.io/badge/-Redis-DC382D?logo=redis&logoColor=white) |
 | ⚡ Backend | ![FastAPI](https://img.shields.io/badge/-FastAPI-009688?logo=fastapi&logoColor=white) ![SQLAlchemy](https://img.shields.io/badge/-SQLAlchemy-D71F00?logo=sqlalchemy&logoColor=white) ![PostgreSQL](https://img.shields.io/badge/-PostgreSQL-4169E1?logo=postgresql&logoColor=white) ![JWT](https://img.shields.io/badge/-JWT-000000?logo=jsonwebtokens&logoColor=white) |
-| 🎨 Frontend | ![React](https://img.shields.io/badge/-React-61DAFB?logo=react&logoColor=black) ![TypeScript](https://img.shields.io/badge/-TypeScript-3178C6?logo=typescript&logoColor=white) ![Vite](https://img.shields.io/badge/-Vite-646CFF?logo=vite&logoColor=white) ![Tailwind](https://img.shields.io/badge/-Tailwind-06B6D4?logo=tailwindcss&logoColor=white) ![TanStack Query](https://img.shields.io/badge/-TanStack_Query-FF4154?logo=reactquery&logoColor=white) |
+| 🎨 Frontend | ![React](https://img.shields.io/badge/-React-61DAFB?logo=react&logoColor=black) ![TypeScript](https://img.shields.io/badge/-TypeScript-3178C6?logo=typescript&logoColor=white) ![Vite](https://img.shields.io/badge/-Vite-646CFF?logo=vite&logoColor=white) ![Tailwind](https://img.shields.io/badge/-Tailwind-06B6D4?logo=tailwindcss&logoColor=white) ![TanStack Query](https://img.shields.io/badge/-TanStack_Query-FF4154?logo=reactquery&logoColor=white) ![Three.js](https://img.shields.io/badge/-Three.js-000000?logo=threedotjs&logoColor=white) ![React Three Fiber](https://img.shields.io/badge/-React_Three_Fiber-000000) ![GSAP](https://img.shields.io/badge/-GSAP-88CE02?logo=greensock&logoColor=black) ![Lenis](https://img.shields.io/badge/-Lenis-111111) ![Vitest](https://img.shields.io/badge/-Vitest-6E9F18?logo=vitest&logoColor=white) |
 | 🚢 DevOps | ![Docker](https://img.shields.io/badge/-Docker-2496ED?logo=docker&logoColor=white) ![GitHub Actions](https://img.shields.io/badge/-GitHub_Actions-2088FF?logo=githubactions&logoColor=white) ![nginx](https://img.shields.io/badge/-nginx-009639?logo=nginx&logoColor=white) ![Caddy](https://img.shields.io/badge/-Caddy-1F88C0?logo=caddy&logoColor=white) |
 | ☁️ Cloud | ![AWS EC2](https://img.shields.io/badge/-EC2-FF9900?logo=amazonec2&logoColor=white) ![CloudFormation](https://img.shields.io/badge/-CloudFormation-FF4F8B?logo=amazonwebservices&logoColor=white) ![SSM](https://img.shields.io/badge/-SSM-527FFF?logo=amazonwebservices&logoColor=white) ![Let's Encrypt](https://img.shields.io/badge/-Let's_Encrypt-003A70?logo=letsencrypt&logoColor=white) |
 
@@ -868,11 +927,15 @@ DeepSea-eDNA/
 - [x] 🔄 GitHub Actions CI/CD with E2E and GHCR publishing
 - [x] ☁️ AWS EC2 deployment with automatic HTTPS
 - [x] 🐟 Interactive, data-driven Taxa Explorer
+- [x] 🎬 Cinematic UI: 3D homepage, live deep-sea background, glass design
+- [x] 🩺 Labelled-batch quality monitoring with a weighted-F1 gate
 - [ ] 📉 Automated drift reports (Evidently AI) that trigger retraining
 - [ ] 🚀 Continuous deployment to AWS via GitHub OIDC
 - [ ] 🗄️ MLflow on PostgreSQL + S3 artifacts, RDS for the app database
 - [ ] ⚖️ Real traffic splitting between two models for A/B tests
 - [ ] 🧬 More taxa and hierarchical (species-level) prediction
+- [ ] 🌗 Light ("shallow water") theme: the background palette is ready
+- [ ] 🧪 Run the Vitest suite in CI next to the frontend build
 
 ---
 
@@ -888,6 +951,24 @@ DeepSea-eDNA/
 <summary><b>🔑 Google says <code>redirect_uri_mismatch</code></b></summary>
 
 Add `<BACKEND_PUBLIC_URL>/auth/oauth/google/callback` to the OAuth client's **Authorized redirect URIs** in Google Cloud Console. In "Testing" mode, add your account as a test user.
+</details>
+
+<details>
+<summary><b>🔌 "Unable to reach the DeepSea eDNA FastAPI backend" in local development</b></summary>
+
+Check the API is running on port 8000 (`curl http://localhost:8000/health`) and that `VITE_API_BASE_URL` points at it. In development the API accepts the frontend from `localhost`, `127.0.0.1` and this machine's LAN addresses on any port. In production only `FRONTEND_URL` / `CORS_ORIGINS` are allowed.
+</details>
+
+<details>
+<summary><b>🌊 Animations look slow, or the 3D scenes barely move</b></summary>
+
+Your OS is asking for reduced motion, so the app keeps motion gentle on purpose. On Windows turn on **Settings → Accessibility → Visual effects → Animation effects** (macOS: System Settings → Accessibility → Display → Reduce motion off) for full speed.
+</details>
+
+<details>
+<summary><b>⚠️ The dashboard's System Status shows a warning</b></summary>
+
+A host resource (CPU, memory or disk) is at **90 %** or more (**critical at 95 %**). The card names which one. Freeing disk space or memory clears it on the next refresh.
 </details>
 
 <details>
@@ -907,7 +988,7 @@ Hard refresh (<kbd>Ctrl</kbd>+<kbd>Shift</kbd>+<kbd>R</kbd>). `index.html` is se
 ## 🤝 Contributing
 
 1. 🍴 Fork and create a branch: `git checkout -b feature/amazing-feature`
-2. 🧪 Run the tests: `cd backend && python -m pytest tests` and `npm run build`
+2. 🧪 Run the tests: `cd backend && python -m pytest tests`, then `npm test` and `npm run build`
 3. 📝 Use clear commit messages (`feat:`, `fix:`, `docs:` …)
 4. 🔃 Open a pull request. CI runs automatically.
 
