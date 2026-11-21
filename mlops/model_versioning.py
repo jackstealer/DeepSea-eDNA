@@ -7,7 +7,7 @@ import logging
 import shutil
 from pathlib import Path
 from typing import Dict, List, Any, Optional
-from datetime import datetime
+from datetime import datetime, timezone
 from dataclasses import dataclass, asdict
 import hashlib
 
@@ -67,7 +67,7 @@ class ModelVersionRegistry:
                     vid: asdict(version) 
                     for vid, version in self.versions.items()
                 },
-                'last_updated': datetime.utcnow().isoformat()
+                'last_updated': datetime.now(timezone.utc).isoformat()
             }
             with open(self.registry_path, 'w') as f:
                 json.dump(data, f, indent=2)
@@ -133,7 +133,7 @@ class ModelVersionRegistry:
             ModelVersion object
         """
         # Generate unique version ID
-        version_id = f"{version_name}_{datetime.utcnow().strftime('%Y%m%d_%H%M%S')}"
+        version_id = f"{version_name}_{datetime.now(timezone.utc).strftime('%Y%m%d_%H%M%S')}"
         
         # Calculate checksum
         checksum = self._calculate_checksum(Path(model_path))
@@ -143,7 +143,7 @@ class ModelVersionRegistry:
             version_id=version_id,
             version_name=version_name,
             model_path=str(model_path),
-            created_at=datetime.utcnow().isoformat(),
+            created_at=datetime.now(timezone.utc).isoformat(),
             description=description,
             metrics=metrics or {},
             training_info=training_info or {},

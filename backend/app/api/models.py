@@ -24,6 +24,8 @@ logger = logging.getLogger(__name__)
 router = APIRouter()
 
 MAX_BATCH_SIZE = 1000
+# Shortest read the web UI accepts; the longest is settings.MAX_SEQUENCE_LENGTH (the model's input size)
+MIN_SEQUENCE_LENGTH = 100
 # IUPAC nucleotide codes; ambiguous bases are encoded as "unknown" by the model
 VALID_SEQUENCE = re.compile(r"^[ACGTURYSWKMBDHVN]+$")
 
@@ -63,7 +65,13 @@ def clean_sequence(raw: str) -> str:
             status_code=422,
             detail=f"Sequence contains invalid characters: {''.join(bad)}"
         )
-    return seq.replace("U", "T")
+    seq = seq.replace("U", "T")
+    if not MIN_SEQUENCE_LENGTH <= len(seq) <= settings.MAX_SEQUENCE_LENGTH:
+        raise HTTPException(
+            status_code=422,
+            detail=f"Sequence is {len(seq)} bp; it must be {MIN_SEQUENCE_LENGTH}-{settings.MAX_SEQUENCE_LENGTH} bp"
+        )
+    return seq
 
 
 def format_prediction(result: Dict[str, Any]) -> Dict[str, Any]:

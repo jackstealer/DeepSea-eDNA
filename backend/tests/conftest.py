@@ -19,6 +19,9 @@ os.environ.update({
     "LOGIN_RATE_LIMIT_PER_MINUTE": "1000",
     "GITHUB_CLIENT_ID": "test-client",
     "GITHUB_CLIENT_SECRET": "test-secret",
+    # Google stays unconfigured whatever the developer's shell or .env says
+    "GOOGLE_CLIENT_ID": "",
+    "GOOGLE_CLIENT_SECRET": "",
     "FRONTEND_URL": "http://frontend.test",
     # The API under test serves the bundled model; MLflow is exercised in test_mlflow.py
     "MODEL_SOURCE": "local",

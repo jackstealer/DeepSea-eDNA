@@ -183,6 +183,13 @@ class TestPrediction:
         response = client.post("/api/predict", json={"sequence": "HELLO123"}, headers=headers(viewer["tokens"]))
         assert response.status_code == 422
 
+    def test_sequence_length_window(self, viewer):
+        # Same 100-1,000 bp window the web UI enforces
+        for seq in ("ACGT" * 20, "ACGT" * 251):
+            response = client.post("/api/predict", json={"sequence": seq}, headers=headers(viewer["tokens"]))
+            assert response.status_code == 422, len(seq)
+            assert "bp" in response.json()["detail"]
+
     def test_batch_prediction_and_stats(self, viewer):
         response = client.post(
             "/api/predict/batch",

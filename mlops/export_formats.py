@@ -7,7 +7,7 @@ import csv
 import logging
 from io import StringIO
 from typing import List, Dict, Any
-from datetime import datetime
+from datetime import datetime, timezone
 
 logger = logging.getLogger(__name__)
 
@@ -73,7 +73,7 @@ class ExportManager:
             "format_url": "http://biom-format.org",
             "type": "OTU table",
             "generated_by": "DeepSea eDNA API v2.0",
-            "date": datetime.utcnow().isoformat(),
+            "date": datetime.now(timezone.utc).isoformat(),
             "rows": observations,
             "columns": [
                 {

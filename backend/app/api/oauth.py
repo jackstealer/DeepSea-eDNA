@@ -83,6 +83,18 @@ def redirect_uri(provider: str) -> str:
     return f"{settings.BACKEND_PUBLIC_URL.rstrip('/')}/auth/oauth/{provider}/callback"
 
 
+def configured_redirect_uris() -> dict:
+    """Callback URL each configured provider must list in its console (Google: Authorized redirect URIs)."""
+    uris = {}
+    for provider in ("google", "github"):
+        try:
+            provider_config(provider)
+        except HTTPException:
+            continue
+        uris[provider] = redirect_uri(provider)
+    return uris
+
+
 def frontend_redirect(path: str, **params) -> RedirectResponse:
     return RedirectResponse(f"{settings.FRONTEND_URL.rstrip('/')}{path}{urlencode(params) if params else ''}")
 

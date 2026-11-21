@@ -6,7 +6,7 @@ import time
 import psutil
 import logging
 from typing import Dict, Any, Optional
-from datetime import datetime
+from datetime import datetime, timezone
 from prometheus_client import Counter, Histogram, Gauge, Info
 from functools import wraps
 
@@ -111,6 +111,35 @@ app_info = Info('app', 'Application information')
 
 
 # ==================== Monitoring Manager ====================
+
+# Host resource thresholds: warn at 90 %, critical at 95 % (common monitoring defaults)
+WARN_PERCENT = 90.0
+CRITICAL_PERCENT = 95.0
+
+
+def resource_status(percent: float) -> str:
+    if percent >= CRITICAL_PERCENT:
+        return "critical"
+    if percent >= WARN_PERCENT:
+        return "warning"
+    return "healthy"
+
+
+def summarize_health(system_health: Dict[str, Any]) -> tuple:
+    """Overall status plus a reason for every strained resource, e.g. ("warning", ["Disk 92% used"])."""
+    if "error" in system_health:
+        return "degraded", ["Host metrics unavailable"]
+    reasons, statuses = [], []
+    for key, label in (("cpu", "CPU"), ("memory", "Memory"), ("disk", "Disk")):
+        part = system_health.get(key)
+        if not part:
+            continue
+        statuses.append(part["status"])
+        if part["status"] != "healthy":
+            reasons.append(f"{label} {part['usage_percent']:.0f}% used")
+    status = "critical" if "critical" in statuses else "warning" if "warning" in statuses else "healthy"
+    return status, reasons
+
 
 class MonitoringManager:
     """
@@ -238,21 +267,21 @@ class MonitoringManager:
                 "cpu": {
                     "usage_percent": cpu_percent,
                     "count": cpu_count,
-                    "status": "healthy" if cpu_percent < 80 else "warning"
+                    "status": resource_status(cpu_percent)
                 },
                 "memory": {
                     "total_bytes": memory.total,
                     "used_bytes": memory.used,
                     "available_bytes": memory.available,
                     "usage_percent": memory.percent,
-                    "status": "healthy" if memory.percent < 80 else "warning"
+                    "status": resource_status(memory.percent)
                 },
                 "disk": {
                     "total_bytes": disk.total,
                     "used_bytes": disk.used,
                     "free_bytes": disk.free,
                     "usage_percent": disk.percent,
-                    "status": "healthy" if disk.percent < 80 else "warning"
+                    "status": resource_status(disk.percent)
                 }
             }
         except Exception as e:
@@ -267,7 +296,7 @@ class MonitoringManager:
             "status": "healthy",
             "uptime_seconds": uptime_seconds,
             "uptime_human": self._format_uptime(uptime_seconds),
-            "timestamp": datetime.utcnow().isoformat()
+            "timestamp": datetime.now(timezone.utc).isoformat()
         }
     
     def get_comprehensive_health(self, model_loader=None, cache_manager=None) -> Dict[str, Any]:
@@ -275,24 +304,12 @@ class MonitoringManager:
         system_health = self.get_system_health()
         app_health = self.get_application_health()
         
-        # Overall status determination
-        statuses = []
-        if "cpu" in system_health:
-            statuses.append(system_health["cpu"]["status"])
-        if "memory" in system_health:
-            statuses.append(system_health["memory"]["status"])
-        if "disk" in system_health:
-            statuses.append(system_health["disk"]["status"])
-        
-        overall_status = "healthy"
-        if "warning" in statuses:
-            overall_status = "warning"
-        if "error" in statuses or "error" in system_health:
-            overall_status = "degraded"
-        
+        overall_status, reasons = summarize_health(system_health)
+
         health_check = {
             "status": overall_status,
-            "timestamp": datetime.utcnow().isoformat(),
+            "reasons": reasons,
+            "timestamp": datetime.now(timezone.utc).isoformat(),
             "components": {
                 "api": {
                     "status": app_health["status"],

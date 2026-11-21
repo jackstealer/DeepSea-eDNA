@@ -2,7 +2,7 @@
 Application configuration using Pydantic Settings
 """
 from pathlib import Path
-from typing import List
+from typing import List, Optional
 from pydantic_settings import BaseSettings, SettingsConfigDict
 
 
@@ -18,11 +18,19 @@ PROJECT_ROOT = _find_project_root()
 DEFAULT_SECRET_KEY = "change-this-secret-key-in-production"
 
 
+# Loopback and private-network origins (any port): localhost, 127.0.0.1, [::1], 10/8, 172.16/12, 192.168/16
+DEV_ORIGIN_PATTERN = (
+    r"^https?://(localhost|127\.0\.0\.1|\[::1\]|10(\.\d{1,3}){3}|192\.168(\.\d{1,3}){2}"
+    r"|172\.(1[6-9]|2\d|3[01])(\.\d{1,3}){2})(:\d+)?$"
+)
+
+
 class Settings(BaseSettings):
     """Application settings"""
 
     model_config = SettingsConfigDict(
-        env_file=".env",
+        # The repo-root .env, also when uvicorn is started from backend/ (Docker passes env vars instead)
+        env_file=PROJECT_ROOT / ".env",
         case_sensitive=True,
         extra="ignore",  # Ignore extra fields from frontend .env
     )
@@ -48,7 +56,6 @@ class Settings(BaseSettings):
 
     # File Storage
     UPLOAD_DIR: str = str(PROJECT_ROOT / "data" / "uploads")
-    RESULTS_DIR: str = str(PROJECT_ROOT / "data" / "results")
     STATE_DIR: str = str(PROJECT_ROOT / "data" / "state")  # Model registry & experiments
     MODEL_DIR: str = str(PROJECT_ROOT / "ml_models")  # Parent folder; DEFAULT_MODEL is a subfolder
     MAX_UPLOAD_SIZE: int = 524288000  # 500MB
@@ -56,8 +63,7 @@ class Settings(BaseSettings):
     # Deep Learning
     DEFAULT_MODEL: str = "marine_model"  # Bundled model folder inside MODEL_DIR
     MODEL_DEVICE: str = "cpu"  # "cuda" falls back to cpu if no GPU is available
-    BATCH_SIZE: int = 32
-    MAX_SEQUENCE_LENGTH: int = 1000
+    MAX_SEQUENCE_LENGTH: int = 1000  # model input size; also the longest read /api/predict accepts
 
     # Model source: "mlflow" (registry only, fail if unavailable), "local" (bundled files)
     # or "auto" (MLflow when MLFLOW_TRACKING_URI is set, otherwise/fallback local)
@@ -96,6 +102,11 @@ class Settings(BaseSettings):
         return origins if frontend in origins else [*origins, frontend]
 
     @property
+    def cors_origin_regex(self) -> Optional[str]:
+        """In development, also accept the frontend from this machine's other addresses (127.0.0.1, LAN IP)."""
+        return None if self.is_production else DEV_ORIGIN_PATTERN
+
+    @property
     def admin_emails(self) -> set:
         return {e.strip().lower() for e in self.ADMIN_EMAILS.split(",") if e.strip()}
 
@@ -105,13 +116,6 @@ class Settings(BaseSettings):
 
     # Logging
     LOG_LEVEL: str = "INFO"
-    LOG_FILE: str = "./logs/app.log"
-
-    # Model Training
-    TRAINING_DATA_DIR: str = "./data/training"
-    VALIDATION_SPLIT: float = 0.2
-    EPOCHS: int = 50
-    LEARNING_RATE: float = 0.001
 
     def validate_for_runtime(self):
         """Refuse to run a production deployment with insecure defaults"""

@@ -60,6 +60,9 @@ async def lifespan(app: FastAPI):
 
     app.state.cache_manager = CacheManager()
     logger.info(f"Cache backend: {app.state.cache_manager.backend}")
+    # A mismatch with the provider console shows up as Google's "Error 400: redirect_uri_mismatch"
+    for provider, uri in oauth.configured_redirect_uris().items():
+        logger.info(f"{provider.title()} sign-in callback (must be registered with {provider.title()}): {uri}")
     logger.info("Application startup complete")
 
     yield
@@ -102,6 +105,7 @@ async def observe_requests(request: Request, call_next):
 app.add_middleware(
     CORSMiddleware,
     allow_origins=settings.cors_origins_list,
+    allow_origin_regex=settings.cors_origin_regex,
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],

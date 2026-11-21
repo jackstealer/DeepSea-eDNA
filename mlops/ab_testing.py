@@ -4,12 +4,13 @@ Enables live model comparison with traffic splitting and performance tracking
 """
 import json
 import logging
+import math
 import random
 import hashlib
 import uuid
 from pathlib import Path
 from typing import Dict, List, Any, Optional, Tuple
-from datetime import datetime, timedelta
+from datetime import datetime, timedelta, timezone
 from dataclasses import dataclass, asdict
 from enum import Enum
 import statistics
@@ -123,7 +124,7 @@ class ABTestManager:
             data = {
                 'experiments': experiments_dict,
                 'active_experiment': self.active_experiment,
-                'last_updated': datetime.utcnow().isoformat()
+                'last_updated': datetime.now(timezone.utc).isoformat()
             }
             
             with open(self.experiments_path, 'w') as f:
@@ -162,7 +163,7 @@ class ABTestManager:
             raise ValueError(f"Traffic percentages must sum to 100, got {total_traffic}")
         
         # Generate experiment ID
-        experiment_id = f"exp_{datetime.utcnow().strftime('%Y%m%d_%H%M%S')}_{uuid.uuid4().hex[:6]}"
+        experiment_id = f"exp_{datetime.now(timezone.utc).strftime('%Y%m%d_%H%M%S')}_{uuid.uuid4().hex[:6]}"
         
         # Create variants
         variants = []
@@ -184,7 +185,7 @@ class ABTestManager:
             variants=variants,
             strategy=strategy,
             status=ExperimentStatus.DRAFT.value,
-            created_at=datetime.utcnow().isoformat(),
+            created_at=datetime.now(timezone.utc).isoformat(),
             duration_days=duration_days
         )
         
@@ -210,7 +211,7 @@ class ABTestManager:
         
         # Start experiment
         experiment.status = ExperimentStatus.RUNNING.value
-        experiment.started_at = datetime.utcnow().isoformat()
+        experiment.started_at = datetime.now(timezone.utc).isoformat()
         self.active_experiment = experiment_id
         
         self._save_experiments()
@@ -224,7 +225,7 @@ class ABTestManager:
         
         experiment = self.experiments[experiment_id]
         experiment.status = ExperimentStatus.COMPLETED.value
-        experiment.ended_at = datetime.utcnow().isoformat()
+        experiment.ended_at = datetime.now(timezone.utc).isoformat()
         
         # Determine winner if requested
         if declare_winner:
@@ -446,7 +447,8 @@ class ABTestManager:
         control = experiment.variants[0]
         treatment = experiment.variants[1]
         
-        if control.prediction_count < 30 or treatment.prediction_count < 30:
+        if min(control.prediction_count, treatment.prediction_count,
+               len(control.confidence_scores), len(treatment.confidence_scores)) < 30:
             return {
                 "message": "Insufficient data for statistical significance (need 30+ samples)",
                 "control_samples": control.prediction_count,
@@ -460,12 +462,13 @@ class ABTestManager:
         # Calculate improvement
         improvement = ((treatment_mean - control_mean) / control_mean * 100) if control_mean > 0 else 0
         
-        # Simple significance check (confidence intervals don't overlap)
         control_ci = self._calculate_confidence_interval(control.confidence_scores)
         treatment_ci = self._calculate_confidence_interval(treatment.confidence_scores)
-        
-        significant = control_ci[1] < treatment_ci[0] or treatment_ci[1] < control_ci[0]
-        
+
+        # The same test decides "significant" and the p-value shown, so the two never disagree
+        p_value = self._two_sample_p_value(control.confidence_scores, treatment.confidence_scores)
+        significant = p_value < 0.05
+
         return {
             "control": {
                 "variant_name": control.variant_name,
@@ -480,10 +483,20 @@ class ABTestManager:
                 "confidence_interval": [round(treatment_ci[0], 4), round(treatment_ci[1], 4)]
             },
             "improvement_percent": round(improvement, 2),
+            "p_value": round(p_value, 4),
             "statistically_significant": significant,
             "recommendation": self._get_recommendation(improvement, significant)
         }
     
+    @staticmethod
+    def _two_sample_p_value(a: List[float], b: List[float]) -> float:
+        """Two-sided p-value for a difference in mean confidence (Welch z-test; callers ensure 30+ samples each)"""
+        diff = statistics.mean(b) - statistics.mean(a)
+        se = math.sqrt(statistics.variance(a) / len(a) + statistics.variance(b) / len(b))
+        if se == 0:
+            return 1.0 if diff == 0 else 0.0
+        return math.erfc(abs(diff) / se / math.sqrt(2))
+
     def _get_recommendation(self, improvement: float, significant: bool) -> str:
         """Get recommendation based on results"""
         if not significant:
