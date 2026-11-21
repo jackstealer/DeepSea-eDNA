@@ -11,6 +11,7 @@ import { DataTable, type ColumnDef } from '@/components/ui/DataTable';
 import { ErrorState } from '@/components/ui/ErrorState';
 import { Skeleton } from '@/components/ui/Skeleton';
 import type { User, UserRole, UserUpdateRequest } from '@/types/api';
+import { PageHeader } from '@/components/ui/PageHeader';
 
 const ROLES: UserRole[] = ['viewer', 'scientist', 'api_user', 'admin'];
 
@@ -97,7 +98,7 @@ export function AdminPage() {
             disabled={updateUser.isPending}
             aria-label={`Role for ${u.username}`}
             onChange={(e) => updateUser.mutate({ id: u.id, update: { role: e.target.value as UserRole } })}
-            className="rounded-md border border-slate-200 dark:border-slate-700 bg-white dark:bg-[#09101D] px-2 py-1 text-[11px] text-slate-900 dark:text-slate-100 focus:outline-none focus:ring-2 focus:ring-cyan-500"
+            className="rounded-md border border-slate-200 dark:border-slate-700 bg-white dark:bg-black/25 px-2 py-1 text-[11px] text-slate-900 dark:text-slate-100 focus:outline-none focus:ring-2 focus:ring-cyan-500"
           >
             {ROLES.map((r) => (
               <option key={r} value={r}>{r}</option>
@@ -144,6 +145,7 @@ export function AdminPage() {
 
   return (
     <div className="space-y-6">
+      <PageHeader title="Admin" accent="control" />
       {/* Security Stats */}
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
         <StatCard

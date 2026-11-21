@@ -1,12 +1,108 @@
 @import "tailwindcss";
 @custom-variant dark (&:where(.dark, .dark *));
 
-@layer base {
-  :root {
-    --font-sans: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
-    --font-mono: 'JetBrains Mono', ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
-  }
+@theme {
+  --font-sans: 'Geist', ui-sans-serif, system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif;
+  --font-serif: 'Instrument Serif', 'Iowan Old Style', Georgia, serif;
+  --font-mono: 'JetBrains Mono', ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+}
 
+/* Surface + accent tokens: light values here, the .dark class swaps them */
+:root {
+  --ds-bg: #f2f3f8;
+  --ds-surface: #ffffff;
+  --ds-ink: #0b1024;
+  --ds-muted: #596179;
+  --ds-line: rgb(11 16 36 / 0.1);
+  --ds-iri-1: #0891b2;
+  --ds-iri-2: #5b4be0;
+  --ds-iri-3: #c2418f;
+  --ds-glass: rgb(255 255 255 / 0.72);
+  --ds-glass-strong: rgb(255 255 255 / 0.9);
+  --ds-hairline: rgb(11 16 36 / 0.08);
+}
+
+.dark {
+  --ds-bg: #04070e;
+  --ds-surface: #0a1120;
+  --ds-ink: #e6ecf5;
+  --ds-muted: #8792a8;
+  --ds-line: rgb(230 236 245 / 0.1);
+  --ds-iri-1: #7fe7f2;
+  --ds-iri-2: #a99bff;
+  --ds-iri-3: #f2a7d6;
+  --ds-glass: rgb(10 17 32 / 0.72); /* ≥ WCAG AA for slate-400 text even with a plankton glow behind */
+  --ds-glass-strong: rgb(10 17 32 / 0.85);
+  --ds-hairline: rgb(230 236 245 / 0.08);
+}
+
+@theme inline {
+  --color-ds-bg: var(--ds-bg);
+  --color-ds-surface: var(--ds-surface);
+  --color-ds-ink: var(--ds-ink);
+  --color-ds-muted: var(--ds-muted);
+  --color-ds-line: var(--ds-line);
+}
+
+/* Thin-film gradient used for the serif accent phrases and the brand mark */
+@utility text-iridescent {
+  background-image: linear-gradient(100deg, var(--ds-iri-1), var(--ds-iri-2) 50%, var(--ds-iri-3));
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
+}
+
+/* Frosted glass over the ocean backdrop. Borders stay with each component's own border classes. */
+@utility glass {
+  background-color: var(--ds-glass);
+  -webkit-backdrop-filter: blur(14px) saturate(1.2);
+  backdrop-filter: blur(14px) saturate(1.2);
+}
+
+@utility glass-strong {
+  background-color: var(--ds-glass-strong);
+  -webkit-backdrop-filter: blur(20px) saturate(1.25);
+  backdrop-filter: blur(20px) saturate(1.25);
+}
+
+/* Iridescent 1px hairline that lights up on hover / keyboard focus inside. Needs a positioned element. */
+@utility glass-hover {
+  position: relative;
+  &::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    border-radius: inherit;
+    padding: 1px;
+    background: linear-gradient(120deg, var(--ds-iri-1), var(--ds-iri-2) 50%, var(--ds-iri-3));
+    -webkit-mask: linear-gradient(#000 0 0) content-box, linear-gradient(#000 0 0);
+    -webkit-mask-composite: xor;
+    mask-composite: exclude;
+    opacity: 0;
+    transition: opacity 0.35s ease;
+    pointer-events: none;
+  }
+  &:hover::before,
+  &:focus-within::before {
+    opacity: 0.75;
+  }
+}
+
+/* Text that sits directly on the ocean: a soft dark halo keeps it AA-readable when light drifts behind it.
+   Gradient (background-clip) text can't take a text-shadow without it painting over the fill, so it gets a drop-shadow. */
+@utility on-water {
+  text-shadow: 0 0 2px rgb(4 7 14 / 0.9), 0 1px 16px rgb(4 7 14 / 0.85);
+  & .text-iridescent {
+    text-shadow: none;
+    filter: drop-shadow(0 0 6px rgb(4 7 14 / 0.9));
+  }
+}
+
+@utility bg-iridescent {
+  background-image: linear-gradient(120deg, var(--ds-iri-1), var(--ds-iri-2) 50%, var(--ds-iri-3));
+}
+
+@layer base {
   html {
     font-family: var(--font-sans);
     scroll-behavior: smooth;
@@ -14,6 +110,29 @@
 
   code, pre, kbd, samp, .font-mono {
     font-family: var(--font-mono);
+  }
+
+  :focus-visible {
+    outline: 2px solid var(--ds-iri-2);
+    outline-offset: 2px;
+  }
+}
+
+@layer components {
+  /* The living half of a headline: italic serif against the light sans */
+  .accent-phrase {
+    font-family: var(--font-serif);
+    font-style: italic;
+    font-weight: 400;
+    letter-spacing: -0.01em;
+    /* keeps the italic overhang inside the gradient clip */
+    padding-inline-end: 0.08em;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  html {
+    scroll-behavior: auto;
   }
 }
 
@@ -71,4 +190,9 @@
   .animate-wave-drift {
     animation: none;
   }
+}
+
+/* The ocean background paints behind everything; html carries the base colour (shown before it draws), so body stays transparent. */
+html {
+  background-color: var(--ds-bg);
 }

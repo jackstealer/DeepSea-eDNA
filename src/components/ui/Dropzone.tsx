@@ -82,7 +82,7 @@ export function Dropzone({
           'flex flex-col items-center justify-center rounded-xl border-2 border-dashed px-6 py-10 text-center transition-colors cursor-pointer focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-cyan-500',
           dragging
             ? 'border-cyan-400 bg-cyan-500/10'
-            : 'border-slate-300 dark:border-slate-700 hover:border-cyan-500/60 bg-slate-50/70 dark:bg-[#0D1628]/70',
+            : 'border-slate-300 dark:border-slate-700 hover:border-cyan-500/60 bg-slate-50/70 dark:glass',
           disabled && 'opacity-50 cursor-not-allowed'
         )}
       >
@@ -114,7 +114,7 @@ export function Dropzone({
           {files.map((file, idx) => (
             <li
               key={`${file.name}-${idx}`}
-              className="flex items-center justify-between gap-3 rounded-lg border border-slate-200 dark:border-slate-800 bg-white dark:bg-[#0D1628] px-3.5 py-2.5"
+              className="flex items-center justify-between gap-3 rounded-lg border border-slate-200 dark:border-slate-800 bg-white dark:glass-strong px-3.5 py-2.5"
             >
               <div className="flex items-center gap-2.5 min-w-0">
                 <FileText className="h-4 w-4 text-cyan-500 shrink-0" />

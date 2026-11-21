@@ -242,14 +242,13 @@ export function ModelsPage() {
 
   return (
     <div className="space-y-6">
-      <ServingModelCard canManage={canWrite} />
       {/* Header */}
       <div className="flex flex-wrap items-center justify-between gap-4">
-        <div>
-          <h2 className="text-base font-semibold text-slate-900 dark:text-slate-100">
-            Model Version Registry
-          </h2>
-          <p className="mt-1 text-xs text-slate-500 dark:text-slate-400">
+        <div className="dark:on-water">
+          <h1 className="text-[clamp(1.75rem,3vw,2.5rem)] font-light leading-[1.05] tracking-[-0.035em] text-ds-ink">
+            Model version <span className="accent-phrase text-iridescent">registry</span>
+          </h1>
+          <p className="mt-1 text-xs text-slate-500 dark:text-slate-300">
             Track trained PyTorch checkpoints, compare metrics, and manage active production models.
           </p>
         </div>
@@ -265,6 +264,8 @@ export function ModelsPage() {
           </button>
         )}
       </div>
+
+      <ServingModelCard canManage={canWrite} />
 
       {/* Versions Table */}
       <Card>
@@ -291,7 +292,7 @@ export function ModelsPage() {
                 aria-label="Filter versions by status"
                 value={statusFilter}
                 onChange={(e) => setStatusFilter(e.target.value)}
-                className="rounded-lg border border-slate-200 dark:border-slate-800 bg-white dark:bg-[#0D1628] px-3 py-1.5 text-xs text-slate-700 dark:text-slate-300"
+                className="rounded-lg border border-slate-200 dark:border-slate-800 bg-white dark:glass px-3 py-1.5 text-xs text-slate-700 dark:text-slate-300"
               >
                 <option value="">All statuses</option>
                 <option value="active">Active</option>
@@ -318,7 +319,7 @@ export function ModelsPage() {
               aria-label="Select baseline version"
               value={compareId1}
               onChange={(e) => setCompareId1(e.target.value)}
-              className="rounded-lg border border-slate-200 dark:border-slate-800 bg-slate-50 dark:bg-[#09101D] px-3 py-2 text-xs font-mono text-slate-900 dark:text-slate-100"
+              className="rounded-lg border border-slate-200 dark:border-slate-800 bg-slate-50 dark:bg-black/25 px-3 py-2 text-xs font-mono text-slate-900 dark:text-slate-100"
             >
               <option value="">Select Version A...</option>
               {versions.map((v) => (
@@ -332,7 +333,7 @@ export function ModelsPage() {
               aria-label="Select candidate version"
               value={compareId2}
               onChange={(e) => setCompareId2(e.target.value)}
-              className="rounded-lg border border-slate-200 dark:border-slate-800 bg-slate-50 dark:bg-[#09101D] px-3 py-2 text-xs font-mono text-slate-900 dark:text-slate-100"
+              className="rounded-lg border border-slate-200 dark:border-slate-800 bg-slate-50 dark:bg-black/25 px-3 py-2 text-xs font-mono text-slate-900 dark:text-slate-100"
             >
               <option value="">Select Version B...</option>
               {versions.map((v) => (
@@ -470,7 +471,7 @@ export function ModelsPage() {
           aria-modal="true"
           aria-label="Model version details"
         >
-          <div className="w-full max-w-lg bg-white dark:bg-[#101A2E] border-l border-slate-200 dark:border-slate-800 h-full overflow-y-auto p-6 shadow-2xl space-y-5">
+          <div className="w-full max-w-lg bg-white dark:glass border-l border-slate-200 dark:border-slate-800 h-full overflow-y-auto p-6 shadow-2xl space-y-5">
             <div className="flex items-start justify-between gap-3">
               <div>
                 <p className="text-[11px] font-mono text-cyan-600 dark:text-cyan-400">
@@ -506,7 +507,7 @@ export function ModelsPage() {
                   {detailQ.data.is_current && <Badge tone="cyan">Active Production</Badge>}
                 </div>
 
-                <dl className="grid grid-cols-2 gap-4 rounded-xl border border-slate-200 dark:border-slate-800 bg-slate-50 dark:bg-[#09101D] p-4">
+                <dl className="grid grid-cols-2 gap-4 rounded-xl border border-slate-200 dark:border-slate-800 bg-slate-50 dark:bg-black/25 p-4">
                   <div>
                     <dt className="text-slate-500">Created</dt>
                     <dd className="mt-1 font-mono">{formatDateTime(detailQ.data.created_at)}</dd>
@@ -589,7 +590,7 @@ export function ModelsPage() {
           aria-modal="true"
           aria-label="Register new model version"
         >
-          <div className="w-full max-w-lg rounded-xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-[#101A2E] p-6 shadow-2xl space-y-4">
+          <div className="w-full max-w-lg rounded-xl border border-slate-200 dark:border-slate-800 bg-white dark:glass p-6 shadow-2xl space-y-4">
             <div className="flex items-center justify-between">
               <h3 className="text-base font-semibold text-slate-900 dark:text-slate-100">
                 Register Model Version
@@ -617,7 +618,7 @@ export function ModelsPage() {
                   value={regName}
                   onChange={(e) => setRegName(e.target.value)}
                   placeholder="v2.2-marine-cnn-lstm"
-                  className="w-full rounded-lg border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-[#09101D] px-3 py-2 font-mono"
+                  className="w-full rounded-lg border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-black/25 px-3 py-2 font-mono"
                 />
               </div>
               <div>
@@ -626,7 +627,7 @@ export function ModelsPage() {
                   required
                   value={regPath}
                   onChange={(e) => setRegPath(e.target.value)}
-                  className="w-full rounded-lg border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-[#09101D] px-3 py-2 font-mono"
+                  className="w-full rounded-lg border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-black/25 px-3 py-2 font-mono"
                 />
               </div>
               <div className="grid grid-cols-2 gap-3">
@@ -639,7 +640,7 @@ export function ModelsPage() {
                     max="1"
                     value={regAccuracy}
                     onChange={(e) => setRegAccuracy(e.target.value)}
-                    className="w-full rounded-lg border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-[#09101D] px-3 py-2 font-mono"
+                    className="w-full rounded-lg border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-black/25 px-3 py-2 font-mono"
                   />
                 </div>
                 <div>
@@ -651,7 +652,7 @@ export function ModelsPage() {
                     max="1"
                     value={regF1}
                     onChange={(e) => setRegF1(e.target.value)}
-                    className="w-full rounded-lg border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-[#09101D] px-3 py-2 font-mono"
+                    className="w-full rounded-lg border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-black/25 px-3 py-2 font-mono"
                   />
                 </div>
               </div>
@@ -662,7 +663,7 @@ export function ModelsPage() {
                   value={regDesc}
                   onChange={(e) => setRegDesc(e.target.value)}
                   placeholder="Training notes and hyperparameters..."
-                  className="w-full rounded-lg border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-[#09101D] px-3 py-2"
+                  className="w-full rounded-lg border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-black/25 px-3 py-2"
                 />
               </div>
               <div>
@@ -670,7 +671,7 @@ export function ModelsPage() {
                 <input
                   value={regTags}
                   onChange={(e) => setRegTags(e.target.value)}
-                  className="w-full rounded-lg border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-[#09101D] px-3 py-2 font-mono"
+                  className="w-full rounded-lg border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-black/25 px-3 py-2 font-mono"
                 />
               </div>
               <label className="inline-flex items-center gap-2 pt-1 cursor-pointer">
@@ -733,7 +734,7 @@ export function ModelsPage() {
             value={deprecateReason}
             onChange={(e) => setDeprecateReason(e.target.value)}
             placeholder="Optional deprecation reason..."
-            className="w-full rounded-lg border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-[#09101D] px-3 py-2 text-xs"
+            className="w-full rounded-lg border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-black/25 px-3 py-2 text-xs"
           />
         )}
       </ConfirmDialog>

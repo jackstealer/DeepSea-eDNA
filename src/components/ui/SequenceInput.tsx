@@ -62,7 +62,7 @@ export function SequenceInput({
         spellCheck={false}
         placeholder="Paste raw DNA sequence (e.g. ATCGCAAACAATGCACTAGTTGACCTTCCAGCCCCCTCAAATATTTCGGT...)"
         className={cn(
-          'w-full rounded-xl border bg-slate-50 dark:bg-[#09101D] px-3.5 py-3 font-mono text-xs leading-relaxed text-slate-900 dark:text-slate-100 placeholder:text-slate-400 focus:outline-none focus:ring-2 transition-colors',
+          'w-full rounded-xl border bg-slate-50 dark:bg-black/25 px-3.5 py-3 font-mono text-xs leading-relaxed text-slate-900 dark:text-slate-100 placeholder:text-slate-400 focus:outline-none focus:ring-2 transition-colors',
           total === 0
             ? 'border-slate-200 dark:border-slate-800 focus:ring-cyan-500/60'
             : stats.isValid

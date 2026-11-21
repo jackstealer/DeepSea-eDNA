@@ -7,6 +7,7 @@ import { Card, CardHeader } from '@/components/ui/Card';
 import { Badge } from '@/components/ui/Badge';
 import { ErrorState } from '@/components/ui/ErrorState';
 import { Skeleton } from '@/components/ui/Skeleton';
+import { displayModelUri, formatModelVersion } from '@/lib/utils';
 
 /** The model version currently answering predictions, and a reload after promoting a new champion */
 export function ServingModelCard({ canManage }: { canManage: boolean }) {
@@ -72,7 +73,7 @@ export function ServingModelCard({ canManage }: { canManage: boolean }) {
           <div>
             <dt className="text-slate-500 dark:text-slate-400">Version</dt>
             <dd className="mt-1 flex items-center gap-1.5">
-              <span className="font-mono font-semibold text-slate-900 dark:text-slate-100">v{info.version}</span>
+              <span className="font-mono font-semibold text-slate-900 dark:text-slate-100">{formatModelVersion(info.version)}</span>
               {info.alias && <Badge tone="emerald">@{info.alias}</Badge>}
             </dd>
           </div>
@@ -83,7 +84,8 @@ export function ServingModelCard({ canManage }: { canManage: boolean }) {
             </dd>
           </div>
           <div>
-            <dt className="text-slate-500 dark:text-slate-400">Validation accuracy</dt>
+            {/* The registry's comparison metric (augmented validation set); the clean held-out figure is in the Taxa Explorer */}
+            <dt className="text-slate-500 dark:text-slate-400">Accuracy logged in training</dt>
             <dd className="mt-1 font-mono font-semibold text-slate-900 dark:text-slate-100">
               {formatPercent(accuracy)}
             </dd>
@@ -95,7 +97,7 @@ export function ServingModelCard({ canManage }: { canManage: boolean }) {
           <div className="col-span-2 lg:col-span-5">
             <dt className="text-slate-500 dark:text-slate-400">Model URI</dt>
             <dd className="mt-1 font-mono text-[11px] text-slate-700 dark:text-slate-300 break-all">
-              {info.uri}
+              <span title={info.uri.startsWith('models:/') ? info.uri : undefined}>{displayModelUri(info.uri)}</span>
               {info.run_id && <span className="text-slate-400"> · run {info.run_id.slice(0, 12)}</span>}
             </dd>
           </div>

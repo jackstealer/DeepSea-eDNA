@@ -21,6 +21,7 @@ import { ErrorState } from '@/components/ui/ErrorState';
 import { Skeleton } from '@/components/ui/Skeleton';
 import { toast } from '@/store/toastStore';
 import type { ExportFormat } from '@/types/api';
+import { PageHeader } from '@/components/ui/PageHeader';
 
 const PAGE_SIZE = 25;
 
@@ -81,7 +82,7 @@ function ClassificationHistory() {
               setOffset(0);
             }}
             aria-label="Filter by taxon"
-            className="rounded-lg border border-slate-200 dark:border-slate-700 bg-white dark:bg-[#09101D] px-2.5 py-1.5 text-xs text-slate-900 dark:text-slate-100 focus:outline-none focus:ring-2 focus:ring-cyan-500"
+            className="rounded-lg border border-slate-200 dark:border-slate-700 bg-white dark:bg-black/25 px-2.5 py-1.5 text-xs text-slate-900 dark:text-slate-100 focus:outline-none focus:ring-2 focus:ring-cyan-500"
           >
             <option value="">All taxa</option>
             {TAXA_REFERENCE.map((t) => (
@@ -110,7 +111,7 @@ function ClassificationHistory() {
           <div className="overflow-x-auto rounded-xl border border-slate-200 dark:border-slate-800">
             <table className="w-full text-left text-xs">
               <thead>
-                <tr className="border-b border-slate-200 dark:border-slate-800 bg-slate-50 dark:bg-slate-900/60 text-slate-500">
+                <tr className="border-b border-slate-200 dark:border-slate-800 bg-slate-50 dark:bg-white/[0.02] text-slate-500">
                   <th className="px-4 py-2.5 font-semibold">When</th>
                   <th className="px-4 py-2.5 font-semibold">Sequence</th>
                   <th className="px-4 py-2.5 font-semibold">Predicted taxon</th>
@@ -244,7 +245,8 @@ export function HistoryPage() {
   const [tab, setTab] = useState<'predictions' | 'jobs'>('predictions');
   return (
     <div className="space-y-5">
-      <div role="tablist" className="inline-flex items-center gap-1 rounded-lg bg-slate-100 dark:bg-[#09101D] p-1 border border-slate-200 dark:border-slate-800">
+      <PageHeader title="Classification" accent="history" />
+      <div role="tablist" className="inline-flex items-center gap-1 rounded-lg bg-slate-100 dark:bg-black/25 p-1 border border-slate-200 dark:border-slate-800">
         {(
           [
             ['predictions', 'Classifications'],

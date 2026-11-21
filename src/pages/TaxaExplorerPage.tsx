@@ -1,4 +1,4 @@
-import { useMemo, useRef, useState } from 'react';
+import { lazy, useMemo, useRef, useState } from 'react';
 import { Link, useNavigate, useSearchParams } from 'react-router-dom';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import {
@@ -21,6 +21,16 @@ import { Card, CardHeader } from '@/components/ui/Card';
 import { Badge, type BadgeTone } from '@/components/ui/Badge';
 import { EmptyState } from '@/components/ui/EmptyState';
 import { StatCard } from '@/components/ui/StatCard';
+import { Scene3DGate } from '@/components/three/Scene3DGate';
+import { useAuthStore } from '@/store/authStore';
+
+const TaxaConstellation = lazy(() => import('@/components/three/TaxaConstellation'));
+
+const PHYLUM_LEGEND: Array<[string, string]> = [
+  ['Chordata', 'bg-cyan-500 dark:bg-cyan-400'],
+  ['Arthropoda', 'bg-amber-600 dark:bg-amber-500'],
+  ['Mollusca', 'bg-teal-600 dark:bg-teal-400'],
+];
 
 type SortKey = 'size' | 'recall' | 'diversity' | 'name';
 
@@ -430,6 +440,7 @@ function TaxonDetail({ taxon, onSelectTaxon, onSelectPath, myCount }: {
 
 export function TaxaExplorerPage() {
   const [params, setParams] = useSearchParams();
+  const theme = useAuthStore((state) => state.theme);
   const [search, setSearch] = useState('');
   const [sort, setSort] = useState<SortKey>('size');
   const [path, setPath] = useState<string[]>(['Animalia']);
@@ -482,9 +493,11 @@ export function TaxaExplorerPage() {
   return (
     <div className="space-y-6">
       <div className="flex flex-wrap items-center justify-between gap-4">
-        <div>
-          <h2 className="text-base font-semibold text-slate-900 dark:text-slate-100">Marine taxa the classifier recognises</h2>
-          <p className="mt-1 text-xs text-slate-500 dark:text-slate-400">
+        <div className="dark:on-water">
+          <h1 className="text-[clamp(1.75rem,3vw,2.5rem)] font-light leading-[1.05] tracking-[-0.035em] text-ds-ink">
+            Marine taxa <span className="accent-phrase text-iridescent">the classifier recognises</span>
+          </h1>
+          <p className="mt-1 text-xs text-slate-500 dark:text-slate-300">
             Built from the {formatNumber(TOTAL_SEQUENCES)}-sequence training set and the model's held-out validation results.
             Predictions are at order/class level.
           </p>
@@ -508,13 +521,50 @@ export function TaxaExplorerPage() {
         <StatCard label="Training sequences" value={formatNumber(TOTAL_SEQUENCES)} subtext={`Source: ${SOURCES}`} icon={<Dna className="h-4 w-4" />} tone="cyan" />
         <StatCard label="Species represented" value={formatNumber(TOTAL_SPECIES)} subtext="Named species in the training set" icon={<Search className="h-4 w-4" />} />
         <StatCard
-          label="Validation accuracy"
+          label="Held-out accuracy"
           value={formatPercent(accuracy, 1)}
           subtext={`${formatNumber(TAXA_CATALOG.validation?.samples)} held-out sequences`}
           icon={<Target className="h-4 w-4" />}
           tone="emerald"
         />
       </div>
+
+      {/* Interactive 3D lineage map: drag to orbit, hover for metrics, click to open a taxon */}
+      <Card padding="none" className="relative overflow-hidden">
+        <div className="pointer-events-none absolute left-5 top-4 z-10 max-w-xs">
+          <p className="font-mono text-[10px] uppercase tracking-[0.2em] text-cyan-700 dark:text-cyan-400">Taxonomy constellation</p>
+          <p className="mt-1 text-xs text-slate-500 dark:text-slate-400">
+            Node size = training sequences · colour = phylum. Drag to rotate, click a taxon to open it.
+          </p>
+        </div>
+        <div className="pointer-events-none absolute right-5 top-4 z-10 hidden sm:flex flex-col gap-1 text-[11px] text-slate-600 dark:text-slate-300">
+          {PHYLUM_LEGEND.map(([phylum, dot]) => (
+            <span key={phylum} className="inline-flex items-center gap-1.5">
+              <span className={cn('h-2 w-2 rounded-full', dot)} />
+              {phylum}
+            </span>
+          ))}
+        </div>
+        <Scene3DGate
+          className="h-[340px] sm:h-[400px] w-full bg-gradient-to-b from-slate-50 to-white dark:from-[#0a1426] dark:to-[#0B1220]"
+          fallback={
+            <div className="flex h-full items-center justify-center text-xs text-slate-400">
+              3D view unavailable on this device. Use the taxonomy tree below.
+            </div>
+          }
+        >
+          {({ animate, gentle }) => (
+            <TaxaConstellation
+              taxa={TAXA_REFERENCE}
+              selected={selected.name}
+              onSelect={selectTaxon}
+              animate={animate}
+              gentle={gentle}
+              dark={theme === 'dark'}
+            />
+          )}
+        </Scene3DGate>
+      </Card>
 
       {/* Narrow screens: list, then details, then tree and chart. Wide: details on the right. */}
       <div className="grid grid-cols-1 xl:grid-cols-12 gap-6">

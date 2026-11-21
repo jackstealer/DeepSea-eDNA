@@ -45,7 +45,7 @@ export function RequireAuth({ children, roles }: RequireAuthProps) {
 
   if (verifying || !user) {
     return (
-      <div className="min-h-screen flex items-center justify-center bg-slate-50 dark:bg-[#0B1220] p-6">
+      <div className="min-h-screen flex items-center justify-center p-6">
         <div className="flex flex-col items-center gap-3 text-xs text-slate-500 dark:text-slate-400">
           <div className="h-7 w-7 animate-spin rounded-full border-2 border-cyan-500 border-t-transparent" />
           <span>Verifying session credentials...</span>
@@ -61,7 +61,7 @@ export function RequireAuth({ children, roles }: RequireAuthProps) {
           <div className="mx-auto flex h-11 w-11 items-center justify-center rounded-xl bg-amber-100 dark:bg-amber-950/60 text-amber-600 dark:text-amber-400 mb-3">
             <ShieldAlert className="h-5 w-5" />
           </div>
-          <h2 className="text-base font-semibold text-slate-900 dark:text-slate-100">
+          <h2 className="text-2xl font-light tracking-[-0.035em] text-slate-900 dark:text-slate-100">
             Access restricted
           </h2>
           <p className="mt-1.5 text-xs text-slate-600 dark:text-slate-400 leading-relaxed">

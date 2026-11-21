@@ -116,6 +116,8 @@ export interface SystemHealthResponse {
 
 export interface DetailedHealthResponse {
   status: string;
+  /** which host resource caused a warning/critical status, e.g. "Disk 92% used" */
+  reasons?: string[];
   timestamp?: string;
   components?: {
     api?: { status?: string; uptime?: string };

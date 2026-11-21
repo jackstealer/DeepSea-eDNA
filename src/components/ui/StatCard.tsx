@@ -1,6 +1,7 @@
 import type { ReactNode } from 'react';
 import { Card } from './Card';
 import { Skeleton } from './Skeleton';
+import { CountUp } from '@/components/motion/CountUp';
 import { cn } from '@/lib/utils';
 
 interface StatCardProps {
@@ -56,11 +57,11 @@ export function StatCard({
       ) : (
         <div>
           <div className="flex items-baseline gap-1.5">
-            <span className={cn('text-2xl font-semibold font-mono tabular-nums tracking-tight', accentText)}>
-              {value}
+            <span className={cn('text-3xl font-light tabular-nums tracking-[-0.03em]', accentText)}>
+              <CountUp value={value} />
             </span>
             {unit && (
-              <span className="text-xs font-mono text-slate-500 dark:text-slate-400">
+              <span className="text-sm text-slate-500 dark:text-slate-400">
                 {unit}
               </span>
             )}

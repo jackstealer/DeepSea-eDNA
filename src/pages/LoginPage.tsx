@@ -1,36 +1,60 @@
-import { useState } from 'react';
-import { Navigate, useLocation, useNavigate } from 'react-router-dom';
-import { Dna, Eye, EyeOff, Lock, Moon, Server, Sun, UserCheck } from 'lucide-react';
-import { DEFAULT_API_BASE_URL, useAuthStore } from '@/store/authStore';
+import { lazy, useRef, useState } from 'react';
+import { Link, Navigate, useLocation, useNavigate } from 'react-router-dom';
+import { Eye, EyeOff, Lock, UserCheck } from 'lucide-react';
+import { BrandMark } from '@/components/common/BrandMark';
+import { useAuthStore } from '@/store/authStore';
 import { api } from '@/lib/api';
 import { toast } from '@/store/toastStore';
 import { cn, getErrorBannerMessage } from '@/lib/utils';
 import { OAuthButtons } from '@/components/auth/OAuthButtons';
 import { TAXA_CATALOG, TAXA_REFERENCE } from '@/data/taxaReference';
+import { Scene3DGate } from '@/components/three/Scene3DGate';
+import type { HeroStat } from '@/components/three/AbyssHero';
+import { CountUp } from '@/components/motion/CountUp';
+import { SplitReveal } from '@/components/motion/SplitReveal';
+import { useLenis } from '@/lib/motion/useLenis';
+import { gsap, useGSAP } from '@/lib/motion/gsap';
+import { usePrefersReducedMotion } from '@/components/three/Scene3DGate';
+
+// three.js is only downloaded when the scene is shown (separate chunk)
+const AbyssHero = lazy(() => import('@/components/three/AbyssHero'));
 
 // Measured on the held-out validation split (see scripts/build_taxa_catalog.py)
 const VALIDATION_ACCURACY = TAXA_CATALOG.validation
   ? `${(TAXA_CATALOG.validation.accuracy * 100).toFixed(1)}%`
   : '—';
 const PHYLA = Array.from(new Set(TAXA_REFERENCE.map((t) => t.lineage[1])));
+const HERO_STATS: HeroStat[] = [
+  { value: VALIDATION_ACCURACY, label: 'held-out accuracy' },
+  { value: `${TAXA_REFERENCE.length} taxa`, label: `${PHYLA.length} phyla` },
+  { value: TAXA_CATALOG.totalSequences.toLocaleString(), label: 'training sequences' },
+  { value: TAXA_REFERENCE.reduce((n, t) => n + t.speciesCount, 0).toLocaleString(), label: 'species' },
+];
 
 export function LoginPage() {
   const navigate = useNavigate();
   const location = useLocation();
+  const panelRef = useRef<HTMLDivElement>(null);
+  const reducedMotion = usePrefersReducedMotion();
+  useLenis(true);
+  useGSAP(
+    () => {
+      if (reducedMotion || !panelRef.current) return;
+      gsap.from(panelRef.current, { y: 40, opacity: 0, duration: 0.6, ease: 'power3.out', clearProps: 'opacity,transform' });
+    },
+    { dependencies: [reducedMotion] }
+  );
   const {
     accessToken,
     user,
     setTokens,
     setUser,
-    theme,
-    toggleTheme,
-    getEffectiveApiBaseUrl,
-    setApiBaseUrlOverride,
   } = useAuthStore();
 
-  const [tab, setTab] = useState<'login' | 'register'>('login');
-  const [showApiConfig, setShowApiConfig] = useState(false);
-  const [apiDraft, setApiDraft] = useState(getEffectiveApiBaseUrl());
+  // "Create an account" on the landing page links here with ?mode=register
+  const [tab, setTab] = useState<'login' | 'register'>(() =>
+    new URLSearchParams(location.search).get('mode') === 'register' ? 'register' : 'login'
+  );
 
   // Login form state (never prefilled)
   const [username, setUsername] = useState('');
@@ -114,105 +138,101 @@ export function LoginPage() {
     }
   };
 
-  const applyApiUrl = () => {
-    const cleaned = apiDraft.trim().replace(/\/+$/, '');
-    if (!cleaned || cleaned === DEFAULT_API_BASE_URL) {
-      setApiBaseUrlOverride(null);
-      setApiDraft(DEFAULT_API_BASE_URL);
-      toast.info('API URL reset', `Using ${DEFAULT_API_BASE_URL}`);
-    } else {
-      setApiBaseUrlOverride(cleaned);
-      toast.success('API URL updated', `Target set to ${cleaned}`);
-    }
-    setShowApiConfig(false);
-  };
-
   return (
-    <div className="min-h-screen grid lg:grid-cols-12 bg-slate-50 dark:bg-[#0B1220] text-slate-900 dark:text-slate-100">
+    <div className="min-h-screen grid lg:grid-cols-12 text-slate-900 dark:text-slate-100">
       {/* Left Hero Panel */}
-      <div className="relative lg:col-span-7 flex flex-col justify-between overflow-hidden bg-slate-900 dark:bg-[#070D19] text-slate-100 p-8 sm:p-12 lg:p-16 border-b lg:border-b-0 lg:border-r border-slate-800/80">
-        {/* Subtle Animated DNA-Helix & Wave SVG Backdrop */}
-        <div className="pointer-events-none absolute inset-0 overflow-hidden opacity-35" aria-hidden="true">
-          <svg
-            className="absolute -right-24 top-1/2 -translate-y-1/2 h-[640px] w-[640px] animate-helix-float text-cyan-400/25"
-            viewBox="0 0 400 600"
-            fill="none"
-          >
-            {Array.from({ length: 16 }).map((_, i) => {
-              const y = 30 + i * 34;
-              const phase = (i / 15) * Math.PI * 3;
-              const x1 = 200 + Math.sin(phase) * 95;
-              const x2 = 200 - Math.sin(phase) * 95;
-              return (
-                <g key={i}>
-                  <line
-                    x1={x1}
-                    y1={y}
-                    x2={x2}
-                    y2={y}
-                    stroke="currentColor"
-                    strokeWidth="1.25"
-                    strokeDasharray="3 4"
-                    opacity="0.55"
-                  />
-                  <circle cx={x1} cy={y} r="4.5" fill="#22D3EE" opacity="0.7" />
-                  <circle cx={x2} cy={y} r="4.5" fill="#14B8A6" opacity="0.7" />
-                </g>
-              );
-            })}
-          </svg>
+      <div className="relative lg:col-span-7 flex flex-col justify-between overflow-hidden bg-transparent text-slate-100 p-8 sm:p-12 lg:p-16 border-b lg:border-b-0 lg:border-r border-slate-800/80">
+        {/* Interactive 3D scene (glass orb with DNA over an abyssal seafloor); the SVG is the fallback */}
+        <Scene3DGate
+          className="pointer-events-none absolute inset-0"
+          fallback={
+            <div className="pointer-events-none absolute inset-0 overflow-hidden opacity-35" aria-hidden="true">
+              <svg
+                className="absolute -right-24 top-1/2 -translate-y-1/2 h-[640px] w-[640px] animate-helix-float text-cyan-400/25"
+                viewBox="0 0 400 600"
+                fill="none"
+              >
+                {Array.from({ length: 16 }).map((_, i) => {
+                  const y = 30 + i * 34;
+                  const phase = (i / 15) * Math.PI * 3;
+                  const x1 = 200 + Math.sin(phase) * 95;
+                  const x2 = 200 - Math.sin(phase) * 95;
+                  return (
+                    <g key={i}>
+                      <line
+                        x1={x1}
+                        y1={y}
+                        x2={x2}
+                        y2={y}
+                        stroke="currentColor"
+                        strokeWidth="1.25"
+                        strokeDasharray="3 4"
+                        opacity="0.55"
+                      />
+                      <circle cx={x1} cy={y} r="4.5" fill="#22D3EE" opacity="0.7" />
+                      <circle cx={x2} cy={y} r="4.5" fill="#14B8A6" opacity="0.7" />
+                    </g>
+                  );
+                })}
+              </svg>
 
-          <svg
-            className="absolute bottom-0 left-0 w-[120%] h-48 animate-wave-drift text-cyan-500/15"
-            viewBox="0 0 1200 200"
-            preserveAspectRatio="none"
-            fill="none"
-          >
-            <path
-              d="M0 120 C 200 60, 400 180, 600 110 C 800 40, 1000 160, 1200 90 L 1200 200 L 0 200 Z"
-              fill="currentColor"
-            />
-            <path
-              d="M0 150 C 250 100, 450 190, 700 130 C 900 80, 1050 170, 1200 120"
-              stroke="#22D3EE"
-              strokeWidth="1.5"
-              opacity="0.4"
-            />
-          </svg>
-        </div>
+              <svg
+                className="absolute bottom-0 left-0 w-[120%] h-48 animate-wave-drift text-cyan-500/15"
+                viewBox="0 0 1200 200"
+                preserveAspectRatio="none"
+                fill="none"
+              >
+                <path
+                  d="M0 120 C 200 60, 400 180, 600 110 C 800 40, 1000 160, 1200 90 L 1200 200 L 0 200 Z"
+                  fill="currentColor"
+                />
+                <path
+                  d="M0 150 C 250 100, 450 190, 700 130 C 900 80, 1050 170, 1200 120"
+                  stroke="#22D3EE"
+                  strokeWidth="1.5"
+                  opacity="0.4"
+                />
+              </svg>
+            </div>
+          }
+        >
+          {({ animate, gentle }) => <AbyssHero stats={HERO_STATS} animate={animate} gentle={gentle} />}
+        </Scene3DGate>
+        {/* Keeps the copy readable over the scene */}
+        <div
+          className="pointer-events-none absolute inset-0 bg-gradient-to-r from-[#070D19]/70 via-transparent to-transparent"
+          aria-hidden="true"
+        />
+        <div
+          className="pointer-events-none absolute inset-x-0 bottom-0 h-[58%] bg-gradient-to-t from-[#070D19] via-[#070D19]/85 to-transparent"
+          aria-hidden="true"
+        />
 
         {/* Brand */}
         <div className="relative z-10 flex items-center justify-between gap-4">
-          <div className="flex items-center gap-3">
-            <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-cyan-500/15 border border-cyan-400/30 text-cyan-300">
-              <Dna className="h-5 w-5" />
-            </div>
-            <div>
-              <span className="text-base font-semibold tracking-tight text-white">
-                DeepSea eDNA AI
-              </span>
-              <p className="text-xs text-slate-400">Marine Biodiversity Classification</p>
-            </div>
-          </div>
+          <Link to="/" className="flex items-center gap-3 rounded-xl" aria-label="DeepSea eDNA AI home">
+            <span className="flex h-10 w-10 items-center justify-center rounded-xl border border-white/10 bg-white/5">
+              <BrandMark />
+            </span>
+            <span>
+              <span className="block text-base font-medium tracking-tight text-white">DeepSea eDNA AI</span>
+              <span className="block text-xs text-slate-400">Marine Biodiversity Classification</span>
+            </span>
+          </Link>
 
-          <button
-            type="button"
-            onClick={toggleTheme}
-            aria-label={`Switch to ${theme === 'dark' ? 'light' : 'dark'} mode`}
-            className="rounded-lg border border-slate-700/80 bg-slate-800/60 p-2 text-slate-300 hover:text-cyan-300 transition-colors"
-          >
-            {theme === 'dark' ? <Sun className="h-4 w-4" /> : <Moon className="h-4 w-4" />}
-          </button>
         </div>
 
         {/* Scientific Summary */}
-        <div className="relative z-10 my-10 lg:my-0 max-w-xl">
+        {/* Copy docked at the bottom so the 3D orb owns the upper half (as in the reference designs) */}
+        <div className="relative z-10 mt-60 sm:mt-72 lg:mt-auto mb-8 max-w-xl">
           <p className="text-xs font-mono text-cyan-400 tracking-wide mb-3">
             CNN + self-attention taxonomic classifier
           </p>
-          <h1 className="text-3xl sm:text-4xl font-semibold tracking-tight text-white leading-tight [text-wrap:balance]">
-            Taxonomic clarity from abyssal environmental DNA.
-          </h1>
+          <SplitReveal as="h1" className="text-4xl sm:text-5xl font-light tracking-[-0.035em] text-white leading-[1.02] [text-wrap:balance]">
+            Taxonomic clarity{' '}
+            {/* .dark keeps the bright gradient: this panel is dark in both themes */}
+            <span className="dark accent-phrase text-iridescent">from abyssal environmental DNA</span>
+          </SplitReveal>
           <p className="mt-4 text-sm text-slate-300 leading-relaxed max-w-lg">
             Classify marine DNA barcodes (mostly COI and cytochrome b) into {TAXA_REFERENCE.length}{' '}
             taxonomic orders and classes, with {VALIDATION_ACCURACY} accuracy on held-out data, novelty
@@ -221,15 +241,15 @@ export function LoginPage() {
 
           <dl className="mt-8 grid grid-cols-3 gap-6 border-t border-slate-800/90 pt-6">
             <div>
-              <dt className="text-xs text-slate-400">Validation Accuracy</dt>
+              <dt className="text-xs text-slate-400">Held-out accuracy</dt>
               <dd className="mt-1 text-xl font-semibold font-mono tabular-nums text-cyan-300">
-                {VALIDATION_ACCURACY}
+                <CountUp value={VALIDATION_ACCURACY} />
               </dd>
             </div>
             <div>
               <dt className="text-xs text-slate-400">Marine Taxa</dt>
               <dd className="mt-1 text-xl font-semibold font-mono tabular-nums text-white">
-                {TAXA_REFERENCE.length} Groups
+                <CountUp value={TAXA_REFERENCE.length} /> Groups
               </dd>
             </div>
             <div>
@@ -248,21 +268,15 @@ export function LoginPage() {
               {phylum}
             </span>
           ))}
-          {import.meta.env.DEV && (
-            <>
-              <span aria-hidden="true">·</span>
-              <span className="font-mono text-slate-500">{getEffectiveApiBaseUrl()}</span>
-            </>
-          )}
         </div>
       </div>
 
       {/* Right Auth Card Panel */}
       <div className="lg:col-span-5 flex flex-col items-center justify-center p-6 sm:p-10 lg:p-14">
         <div className="w-full max-w-md space-y-6">
-          <div className="rounded-2xl border border-slate-200 dark:border-slate-800/80 bg-white dark:bg-[#101A2E] p-6 sm:p-8 shadow-xl shadow-slate-950/5">
+          <div ref={panelRef} className="glass-hover rounded-[28px] border border-slate-200 dark:border-white/[0.08] bg-white dark:glass-strong p-6 sm:p-8 shadow-xl shadow-slate-950/5">
             {/* Tabs */}
-            <div className="flex items-center gap-1 rounded-lg bg-slate-100 dark:bg-[#09101D] p-1 mb-6 border border-slate-200 dark:border-slate-800">
+            <div className="flex items-center gap-1 rounded-lg bg-slate-100 dark:bg-black/25 p-1 mb-6 border border-slate-200 dark:border-slate-800">
               <button
                 type="button"
                 onClick={() => {
@@ -467,47 +481,6 @@ export function LoginPage() {
             )}
           </div>
 
-          {/* Runtime API Endpoint Override Toggle (development builds only) */}
-          {import.meta.env.DEV && (
-          <div className="rounded-xl border border-slate-200 dark:border-slate-800/80 bg-white/70 dark:bg-[#101A2E]/60 p-4">
-            <div className="flex items-center justify-between gap-2">
-              <div className="flex items-center gap-2 text-xs text-slate-600 dark:text-slate-400 min-w-0">
-                <Server className="h-3.5 w-3.5 text-cyan-500 shrink-0" />
-                <span className="truncate font-mono">{getEffectiveApiBaseUrl()}</span>
-              </div>
-              <button
-                type="button"
-                onClick={() => {
-                  setApiDraft(getEffectiveApiBaseUrl());
-                  setShowApiConfig((v) => !v);
-                }}
-                className="text-xs font-medium text-cyan-600 dark:text-cyan-400 hover:underline shrink-0"
-              >
-                {showApiConfig ? 'Cancel' : 'API settings'}
-              </button>
-            </div>
-
-            {showApiConfig && (
-              <div className="mt-3 flex items-center gap-2">
-                <input
-                  type="url"
-                  value={apiDraft}
-                  onChange={(e) => setApiDraft(e.target.value)}
-                  placeholder="http://localhost:8000"
-                  aria-label="FastAPI Base URL"
-                  className="flex-1 rounded-lg border border-slate-200 dark:border-slate-700 bg-white dark:bg-[#09101D] px-3 py-1.5 text-xs font-mono text-slate-900 dark:text-slate-100 focus:outline-none focus:ring-2 focus:ring-cyan-500"
-                />
-                <button
-                  type="button"
-                  onClick={applyApiUrl}
-                  className="rounded-lg bg-cyan-600 hover:bg-cyan-500 px-3 py-1.5 text-xs font-medium text-white transition-colors shrink-0"
-                >
-                  Save
-                </button>
-              </div>
-            )}
-          </div>
-          )}
         </div>
       </div>
     </div>

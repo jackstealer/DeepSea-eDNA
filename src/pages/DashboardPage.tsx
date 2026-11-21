@@ -26,6 +26,7 @@ import { EmptyState } from '@/components/ui/EmptyState';
 import { ErrorState } from '@/components/ui/ErrorState';
 import { Skeleton } from '@/components/ui/Skeleton';
 import { useAuthStore } from '@/store/authStore';
+import { PageHeader } from '@/components/ui/PageHeader';
 
 function ResourceGauge({
   label,
@@ -70,7 +71,7 @@ function QuickAction({ to, icon, title, description }: { to: string; icon: React
   return (
     <Link
       to={to}
-      className="group rounded-xl border border-slate-200 dark:border-slate-800/80 bg-white dark:bg-[#101A2E]/90 p-5 hover:border-cyan-500/60 transition-colors"
+      className="group rounded-xl border border-slate-200 dark:border-white/[0.07] bg-white dark:glass p-5 hover:border-cyan-500/60 transition-colors"
     >
       <div className="flex items-center justify-between">
         <div className="flex h-9 w-9 items-center justify-center rounded-lg bg-cyan-500/10 text-cyan-600 dark:text-cyan-400">
@@ -103,12 +104,11 @@ function PersonalOverview() {
 
   return (
     <section aria-label="Your workspace" className="space-y-6">
-      <div>
-        <h2 className="text-lg font-semibold text-slate-900 dark:text-slate-100">
-          Welcome{user?.full_name ? `, ${user.full_name.split(' ')[0]}` : ''}
-        </h2>
-        <p className="text-xs text-slate-500 dark:text-slate-400">Your classifications and analyses. Only you can see this data.</p>
-      </div>
+      <PageHeader
+        title={user?.full_name ? 'Welcome,' : 'Welcome'}
+        accent={user?.full_name?.split(' ')[0]}
+        subtitle="Your classifications and analyses. Only you can see this data."
+      />
 
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-5 gap-4">
         <StatCard
@@ -147,7 +147,7 @@ function PersonalOverview() {
           value={stats?.model.version_name ?? '—'}
           subtext={
             stats?.model.accuracy != null
-              ? `Validation accuracy ${formatPercent(stats.model.accuracy)}`
+              ? `Accuracy logged in training ${formatPercent(stats.model.accuracy)}`
               : stats?.model.loaded ? 'Loaded' : 'Not loaded'
           }
           icon={<Cpu className="h-4 w-4" />}
@@ -343,7 +343,7 @@ function SystemOverview() {
   return (
     <section aria-label="System overview" className="space-y-6">
       <div className="flex items-center gap-2 pt-2 border-t border-slate-200 dark:border-slate-800">
-        <h2 className="pt-4 text-lg font-semibold text-slate-900 dark:text-slate-100">System Overview</h2>
+        <h2 className="pt-4 text-lg font-semibold text-slate-900 dark:text-slate-100 dark:on-water">System Overview</h2>
         <span className="pt-4"><Badge tone="cyan">admin</Badge></span>
       </div>
 
@@ -351,9 +351,23 @@ function SystemOverview() {
         <StatCard
           label="System Status"
           value={systemStatus}
-          subtext={appQ.data?.uptime_human ? `Uptime: ${appQ.data.uptime_human}` : 'FastAPI health'}
+          subtext={
+            detailedHealthQ.data?.reasons?.length
+              ? detailedHealthQ.data.reasons.join(' · ')
+              : appQ.data?.uptime_human
+                ? `Uptime: ${appQ.data.uptime_human}`
+                : 'FastAPI health'
+          }
           icon={<Activity className="h-4 w-4" />}
-          tone={systemStatus === 'healthy' ? 'emerald' : systemStatus === 'warning' ? 'amber' : 'default'}
+          tone={
+            systemStatus === 'healthy'
+              ? 'emerald'
+              : systemStatus === 'warning'
+                ? 'amber'
+                : systemStatus === 'critical' || systemStatus === 'degraded'
+                  ? 'rose'
+                  : 'default'
+          }
           loading={detailedHealthQ.isLoading && appQ.isLoading}
         />
         <StatCard

@@ -45,7 +45,7 @@ export function ConfirmDialog({
       aria-modal="true"
       aria-labelledby="confirm-dialog-title"
     >
-      <div className="w-full max-w-md rounded-xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-[#101A2E] p-6 shadow-2xl">
+      <div className="w-full max-w-md rounded-xl border border-slate-200 dark:border-slate-800 bg-white dark:glass-strong p-6 shadow-2xl">
         <div className="flex items-start justify-between gap-3">
           <div className="flex items-start gap-3">
             {tone === 'danger' && (

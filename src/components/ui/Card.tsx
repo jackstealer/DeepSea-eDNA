@@ -19,8 +19,9 @@ export function Card({ children, className, padding = 'md' }: CardProps) {
 
   return (
     <div
+      data-reveal
       className={cn(
-        'rounded-xl border border-slate-200 bg-white/95 dark:border-slate-800/80 dark:bg-[#101A2E]/90 backdrop-blur-sm transition-colors',
+        'rounded-2xl border border-slate-200/80 bg-white/80 backdrop-blur-md dark:border-white/[0.08] dark:glass transition-[border-color,box-shadow] duration-300 hover:border-cyan-600/30 hover:shadow-[0_10px_30px_-14px_rgba(14,116,144,0.35)] dark:hover:border-cyan-300/25 dark:hover:shadow-[0_0_0_1px_rgba(34,211,238,0.08),0_12px_36px_-14px_rgba(34,211,238,0.45)]',
         padClass,
         className
       )}
@@ -41,7 +42,7 @@ export function CardHeader({ title, subtitle, action, className }: CardHeaderPro
   return (
     <div className={cn('flex items-start justify-between gap-4 mb-4', className)}>
       <div className="min-w-0">
-        <h3 className="text-sm font-semibold text-slate-900 dark:text-slate-100 tracking-tight truncate">
+        <h3 className="text-[15px] font-normal text-slate-900 dark:text-slate-100 tracking-tight truncate">
           {title}
         </h3>
         {subtitle && (

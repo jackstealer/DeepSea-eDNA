@@ -6,7 +6,7 @@ export function statusTone(status?: string): BadgeTone {
   const s = (status || '').toLowerCase();
   if (s === 'healthy' || s === 'active' || s === 'loaded' || s === 'completed') return 'emerald';
   if (s === 'warning' || s === 'processing' || s === 'queued') return 'amber';
-  if (s === 'degraded' || s === 'error' || s === 'not_loaded' || s === 'inactive' || s === 'failed') return 'rose';
+  if (s === 'critical' || s === 'degraded' || s === 'error' || s === 'not_loaded' || s === 'inactive' || s === 'failed') return 'rose';
   return 'neutral';
 }
 
@@ -156,7 +156,8 @@ export function formatBytes(bytes: number | null | undefined): string {
 
 export function formatDateTime(iso: string | null | undefined): string {
   if (!iso) return '—';
-  const date = new Date(iso);
+  // The API's times are UTC, but SQLite and the MLOps JSON stores drop the offset; JS would read those as local time
+  const date = new Date(/T[\d:.]+$/.test(iso) ? `${iso}Z` : iso);
   if (Number.isNaN(date.getTime())) return iso;
   return new Intl.DateTimeFormat('en-US', {
     month: 'short',
@@ -188,4 +189,19 @@ export function getErrorBannerMessage(err: unknown): string {
   if (apiErr?.message) return apiErr.message;
   if (err instanceof Error) return err.message;
   return 'An unexpected error occurred while communicating with the API.';
+}
+
+/** "v2.1", "3" or 2 → one leading "v" (the bundled model's version string already carries it). */
+export function formatModelVersion(version: string | number): string {
+  return `v${String(version).replace(/^v/i, '')}`;
+}
+
+/**
+ * Registry URIs (models:/…, runs:/…, s3://…) are shown as-is; local file paths are cut to their
+ * last two folders so the page never shows the server's directory layout or user name.
+ */
+export function displayModelUri(uri: string): string {
+  if (/^[a-z][a-z0-9+.-]*:\//i.test(uri) && !/^[a-z]:[\\/]/i.test(uri)) return uri;
+  const parts = uri.split(/[\\/]+/).filter(Boolean);
+  return parts.length > 2 ? `…/${parts.slice(-2).join('/')}` : parts.join('/');
 }

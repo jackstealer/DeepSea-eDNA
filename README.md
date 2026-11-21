@@ -16,7 +16,7 @@
   <img src="https://img.shields.io/badge/Accuracy-95.0%25-10B981?style=flat-square" alt="Accuracy"/>
   <img src="https://img.shields.io/badge/Training_data-48%2C000_sequences-0EA5E9?style=flat-square" alt="Data"/>
   <img src="https://img.shields.io/badge/Taxa-8-6366F1?style=flat-square" alt="Taxa"/>
-  <img src="https://img.shields.io/badge/Tests-47_passing-22C55E?style=flat-square&logo=pytest&logoColor=white" alt="Tests"/>
+  <img src="https://img.shields.io/badge/Tests-56_passing-22C55E?style=flat-square&logo=pytest&logoColor=white" alt="Tests"/>
   <a href="LICENSE"><img src="https://img.shields.io/badge/License-MIT-F59E0B?style=flat-square" alt="License"/></a>
 </p>
 
@@ -162,7 +162,7 @@ Every animal in the ocean sheds tiny traces of DNA (skin cells, mucus, waste) in
 ### 🚢 Engineering
 - **FastAPI** + PostgreSQL + Alembic migrations
 - **Docker compose** stack (6 services)
-- **47 pytest tests**, CI on SQLite **and** PostgreSQL
+- **56 pytest tests**, CI on SQLite **and** PostgreSQL
 - **GitHub Actions**: lint → test → E2E → publish to GHCR
 - **AWS EC2** via CloudFormation, auto-HTTPS with Caddy
 
@@ -193,7 +193,7 @@ Every animal in the ocean sheds tiny traces of DNA (skin cells, mucus, waste) in
 - Shannon & Simpson **diversity**, evenness
 - Per-taxon precision / recall / F1 + confusions
 - 4,826 species across 3 phyla in the training set
-- Every result records the **model version** used
+- Dashboard and registry show which **model version** is serving
 
 </td>
 </tr>
@@ -514,7 +514,7 @@ flowchart LR
 
 | Workflow | ⏰ Trigger | 🔧 What it does |
 |---|---|---|
-| **CI/CD Pipeline** `ci-cd.yml` | push, PR, tags, manual | lint · 47 tests on 2 databases · frontend build · Trivy/Bandit · full-stack E2E with MLflow · publish images to **GHCR** |
+| **CI/CD Pipeline** `ci-cd.yml` | push, PR, tags, manual | lint · 56 tests on 2 databases · frontend build · Trivy/Bandit · full-stack E2E with MLflow · publish images to **GHCR** |
 | **Model Retraining** `model-training.yml` | manual or `repository_dispatch: retrain` | train → register `@challenger` → approval gate → summary + artifacts |
 | **Pull Request Checks** `pr-checks.yml` | PR opened/updated | change summary, warns on PRs > 1,000 lines |
 

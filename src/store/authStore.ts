@@ -41,13 +41,9 @@ function readInitialUser(): User | null {
   }
 }
 
+// Dark only for now: the cinematic redesign has no light palette yet. The theme field and setters
+// stay so light mode can come back later by reading THEME_STORAGE_KEY here again.
 function readInitialTheme(): ThemeMode {
-  try {
-    const saved = localStorage.getItem(THEME_STORAGE_KEY);
-    if (saved === 'light' || saved === 'dark') return saved;
-  } catch {
-    // ignore
-  }
   return 'dark';
 }
 

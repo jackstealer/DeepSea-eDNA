@@ -143,11 +143,11 @@ export function ExperimentsPage() {
   return (
     <div className="space-y-6">
       <div className="flex flex-wrap items-center justify-between gap-4">
-        <div>
-          <h2 className="text-base font-semibold text-slate-900 dark:text-slate-100">
-            A/B Testing Experiments
-          </h2>
-          <p className="mt-1 text-xs text-slate-500 dark:text-slate-400">
+        <div className="dark:on-water">
+          <h1 className="text-[clamp(1.75rem,3vw,2.5rem)] font-light leading-[1.05] tracking-[-0.035em] text-ds-ink">
+            A/B testing <span className="accent-phrase text-iridescent">experiments</span>
+          </h1>
+          <p className="mt-1 text-xs text-slate-500 dark:text-slate-300">
             Split live inference traffic across model versions and inspect statistical significance.
           </p>
         </div>
@@ -157,7 +157,7 @@ export function ExperimentsPage() {
             aria-label="Filter experiments by status"
             value={statusFilter}
             onChange={(e) => setStatusFilter(e.target.value)}
-            className="rounded-lg border border-slate-200 dark:border-slate-800 bg-white dark:bg-[#101A2E] px-3 py-2 text-xs text-slate-700 dark:text-slate-300"
+            className="rounded-lg border border-slate-200 dark:border-slate-800 bg-white dark:glass px-3 py-2 text-xs text-slate-700 dark:text-slate-300"
           >
             <option value="">All statuses</option>
             <option value="draft">Draft</option>
@@ -263,7 +263,7 @@ export function ExperimentsPage() {
                     {exp.variants.map((v, idx) => (
                       <div
                         key={v.variant_id || v.name || idx}
-                        className="rounded-lg border border-slate-200/80 dark:border-slate-800 bg-slate-50/70 dark:bg-[#09101D] px-3 py-2 text-xs"
+                        className="rounded-lg border border-slate-200/80 dark:border-slate-800 bg-slate-50/70 dark:bg-black/25 px-3 py-2 text-xs"
                       >
                         <div className="flex items-center justify-between gap-2">
                           <span className="font-medium text-slate-900 dark:text-slate-100 truncate">
@@ -448,7 +448,7 @@ export function ExperimentsPage() {
 
               {/* Statistical Analysis */}
               {resultsQ.data.statistical_analysis && (
-                <div className="rounded-xl border border-slate-200 dark:border-slate-800 bg-slate-50/70 dark:bg-[#09101D] p-4 space-y-2 text-xs">
+                <div className="rounded-xl border border-slate-200 dark:border-slate-800 bg-slate-50/70 dark:bg-black/25 p-4 space-y-2 text-xs">
                   <div className="flex flex-wrap items-center justify-between gap-2">
                     <span className="font-semibold text-slate-900 dark:text-slate-100">
                       Statistical Significance
@@ -499,7 +499,7 @@ export function ExperimentsPage() {
           aria-modal="true"
           aria-label="Create A/B experiment"
         >
-          <div className="w-full max-w-lg rounded-xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-[#101A2E] p-6 shadow-2xl space-y-4 max-h-[90vh] overflow-y-auto">
+          <div className="w-full max-w-lg rounded-xl border border-slate-200 dark:border-slate-800 bg-white dark:glass p-6 shadow-2xl space-y-4 max-h-[90vh] overflow-y-auto">
             <div className="flex items-center justify-between">
               <h3 className="text-base font-semibold text-slate-900 dark:text-slate-100">
                 Create A/B Experiment
@@ -527,7 +527,7 @@ export function ExperimentsPage() {
                   value={expName}
                   onChange={(e) => setExpName(e.target.value)}
                   placeholder="e.g. Champion vs retrained challenger"
-                  className="w-full rounded-lg border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-[#09101D] px-3 py-2"
+                  className="w-full rounded-lg border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-black/25 px-3 py-2"
                 />
               </div>
               <div>
@@ -538,7 +538,7 @@ export function ExperimentsPage() {
                   value={expDesc}
                   onChange={(e) => setExpDesc(e.target.value)}
                   placeholder="Compare baseline marine_model against v2.2 on live queries"
-                  className="w-full rounded-lg border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-[#09101D] px-3 py-2"
+                  className="w-full rounded-lg border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-black/25 px-3 py-2"
                 />
               </div>
 
@@ -548,7 +548,7 @@ export function ExperimentsPage() {
                   <select
                     value={strategy}
                     onChange={(e) => setStrategy(e.target.value)}
-                    className="w-full rounded-lg border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-[#09101D] px-3 py-2"
+                    className="w-full rounded-lg border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-black/25 px-3 py-2"
                   >
                     <option value="random">random</option>
                     <option value="hash">hash</option>
@@ -562,7 +562,7 @@ export function ExperimentsPage() {
                     min="1"
                     value={durationDays}
                     onChange={(e) => setDurationDays(e.target.value)}
-                    className="w-full rounded-lg border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-[#09101D] px-3 py-2 font-mono"
+                    className="w-full rounded-lg border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-black/25 px-3 py-2 font-mono"
                   />
                 </div>
               </div>
@@ -597,7 +597,7 @@ export function ExperimentsPage() {
                         )
                       }
                       placeholder="name"
-                      className="col-span-4 rounded-lg border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-[#09101D] px-2.5 py-1.5"
+                      className="col-span-4 rounded-lg border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-black/25 px-2.5 py-1.5"
                     />
                     <input
                       required
@@ -611,7 +611,7 @@ export function ExperimentsPage() {
                         )
                       }
                       placeholder="version_id"
-                      className="col-span-5 rounded-lg border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-[#09101D] px-2.5 py-1.5 font-mono"
+                      className="col-span-5 rounded-lg border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-black/25 px-2.5 py-1.5 font-mono"
                     />
                     <input
                       required
@@ -626,7 +626,7 @@ export function ExperimentsPage() {
                           )
                         )
                       }
-                      className="col-span-2 rounded-lg border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-[#09101D] px-2 py-1.5 font-mono text-right"
+                      className="col-span-2 rounded-lg border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-black/25 px-2 py-1.5 font-mono text-right"
                     />
                     {variants.length > 2 && (
                       <button

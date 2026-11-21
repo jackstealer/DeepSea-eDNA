@@ -4,6 +4,7 @@ import { api } from '@/lib/api';
 import { useAuthStore } from '@/store/authStore';
 import { toast } from '@/store/toastStore';
 import { getErrorBannerMessage } from '@/lib/utils';
+import { BrandMark } from '@/components/common/BrandMark';
 
 /**
  * Landing page after Google/GitHub sign-in. The backend redirects here with the
@@ -46,8 +47,9 @@ export function OAuthCallbackPage() {
   }, [navigate, setTokens, setUser, clearAuth]);
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-slate-50 dark:bg-[#0B1220] p-6">
-      <div className="flex flex-col items-center gap-3 text-xs text-slate-500 dark:text-slate-400">
+    <div className="min-h-screen flex items-center justify-center p-6">
+      <div className="glass-strong flex flex-col items-center gap-4 rounded-[28px] border border-white/[0.08] px-10 py-8 text-xs text-slate-500 dark:text-slate-400">
+        <BrandMark className="h-8 w-8" />
         <div className="h-7 w-7 animate-spin rounded-full border-2 border-cyan-500 border-t-transparent" />
         <span>Completing sign-in...</span>
       </div>

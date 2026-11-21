@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from 'react';
+import { Fragment, lazy, useEffect, useMemo, useState } from 'react';
 import { useLocation, useSearchParams } from 'react-router-dom';
 import { useMutation } from '@tanstack/react-query';
 import {
@@ -47,6 +47,11 @@ import { Dropzone } from '@/components/ui/Dropzone';
 import { DataTable, type ColumnDef } from '@/components/ui/DataTable';
 import { EmptyState } from '@/components/ui/EmptyState';
 import { ErrorState } from '@/components/ui/ErrorState';
+import { Scene3DGate, usePrefersReducedMotion } from '@/components/three/Scene3DGate';
+import { PageHeader } from '@/components/ui/PageHeader';
+import { LineageTrail } from '@/components/motion/LineageTrail';
+import { BASE_COLORS } from '@/components/three/palette';
+import { emitOceanEvent } from '@/lib/oceanEvents';
 import type {
   AnalysisJobResponse,
   BatchPredictResponse,
@@ -65,6 +70,9 @@ interface UnifiedResultRow {
   abundance: number;
   isNovel: boolean;
 }
+
+const SequenceHelix = lazy(() => import('@/components/three/SequenceHelix'));
+const HELIX_MAX_BASES = 56;
 
 const CHART_PALETTE = [
   '#22D3EE',
@@ -100,6 +108,9 @@ export function ClassifyPage() {
   );
   const [useCache, setUseCache] = useState(true);
   const [singleResult, setSingleResult] = useState<PredictResponse | null>(null);
+  // Bumped per classification so the result cards remount and their reveal plays for the new result only
+  const [resultSeq, setResultSeq] = useState(0);
+  const reducedMotion = usePrefersReducedMotion();
 
   // Batch state
   const [batchRaw, setBatchRaw] = useState('');
@@ -130,6 +141,8 @@ export function ClassifyPage() {
     },
     onSuccess: (data) => {
       setSingleResult(data);
+      setResultSeq((n) => n + 1);
+      emitOceanEvent({ type: data.is_novel ? 'novel-taxon' : 'classification-success' });
       toast.success('Classification complete', `Predicted ${data.predicted_class}`);
     },
     onError: (err) => {
@@ -152,6 +165,8 @@ export function ClassifyPage() {
       ),
     onSuccess: (data) => {
       setBatchResult(data);
+      const items = data.predictions ?? data.results ?? [];
+      emitOceanEvent({ type: items.some((item) => item.is_novel) ? 'novel-taxon' : 'classification-success' });
       toast.success(
         'Batch classification complete',
         `Processed ${data.predictions?.length ?? 0} sequences`
@@ -233,6 +248,19 @@ export function ClassifyPage() {
   };
 
   const singleSeqStats = analyzeDnaSequence(sequence);
+  // FASTA header lines removed, RNA U read as T; only the first bases are drawn
+  const helixBases = useMemo(
+    () =>
+      sequence
+        .split('\n')
+        .filter((line) => !line.trimStart().startsWith('>'))
+        .join('')
+        .toUpperCase()
+        .replace(/U/g, 'T')
+        .replace(/[^ACGTN]/g, '')
+        .slice(0, HELIX_MAX_BASES),
+    [sequence]
+  );
   const singleProbBars = useMemo(
     () => (singleResult ? buildAllTaxaProbabilities(singleResult) : []),
     [singleResult]
@@ -357,6 +385,7 @@ export function ClassifyPage() {
 
   return (
     <div className="space-y-6">
+      <PageHeader title="Classify" accent="a sequence" />
       {/* Mode Segmented Tabs */}
       <div className="flex flex-wrap items-center justify-between gap-4">
         <div
@@ -441,6 +470,47 @@ export function ClassifyPage() {
           </Card>
 
           <div className="lg:col-span-6 space-y-6">
+            {/* Live 3D double helix of the first bases; spins up while the model is classifying */}
+            <Card padding="none" className="overflow-hidden">
+              <div className="flex flex-wrap items-center justify-between gap-2 px-5 pt-4">
+                <div>
+                  <p className="text-sm font-semibold text-slate-900 dark:text-slate-100">Sequence structure</p>
+                  <p className="text-[11px] text-slate-500 dark:text-slate-400">
+                    {helixBases
+                      ? `First ${helixBases.length} of ${singleSeqStats.length.toLocaleString()} bp as a double helix`
+                      : 'Paste or load a sequence to build its helix'}
+                  </p>
+                </div>
+                <div className="flex items-center gap-2.5 text-[11px] font-mono text-slate-600 dark:text-slate-300">
+                  {Object.entries(BASE_COLORS).map(([base, color]) => (
+                    <span key={base} className="inline-flex items-center gap-1">
+                      <span className="h-2 w-2 rounded-full" style={{ backgroundColor: color }} />
+                      {base}
+                    </span>
+                  ))}
+                </div>
+              </div>
+              <Scene3DGate
+                className="h-44 w-full"
+                fallback={
+                  <p className="px-5 py-6 font-mono text-[11px] break-all leading-relaxed">
+                    {(helixBases || 'ACGT').split('').map((base, i) => (
+                      <span key={i} style={{ color: BASE_COLORS[base] ?? '#64748b' }}>{base}</span>
+                    ))}
+                  </p>
+                }
+              >
+                {({ animate, gentle }) => (
+                  <SequenceHelix
+                    bases={helixBases}
+                    state={singleMutation.isPending ? 'loading' : singleResult ? 'done' : 'idle'}
+                    animate={animate}
+                    gentle={gentle}
+                  />
+                )}
+              </Scene3DGate>
+            </Card>
+
             {!singleResult ? (
               <Card>
                 <EmptyState
@@ -450,7 +520,7 @@ export function ClassifyPage() {
                 />
               </Card>
             ) : (
-              <>
+              <Fragment key={resultSeq}>
                 <Card>
                   <div className="flex flex-col sm:flex-row items-center gap-6">
                     <ConfidenceGauge
@@ -522,7 +592,7 @@ export function ClassifyPage() {
                             color: '#F8FAFC',
                           }}
                         />
-                        <Bar dataKey="probability" radius={[0, 4, 4, 0]}>
+                        <Bar dataKey="probability" radius={[0, 4, 4, 0]} isAnimationActive={!reducedMotion} animationDuration={700}>
                           {singleProbBars.map((entry) => (
                             <Cell
                               key={entry.taxon}
@@ -563,7 +633,10 @@ export function ClassifyPage() {
                     <div>
                       <dt className="text-slate-500 dark:text-slate-400">Lineage</dt>
                       <dd className="mt-1 font-mono text-[11px] text-slate-700 dark:text-slate-300">
-                        {(singleResult.lineage ?? singleTaxonMeta?.lineage)?.join(' › ') || '—'}
+                        {(() => {
+                          const lineage = singleResult.lineage ?? singleTaxonMeta?.lineage;
+                          return lineage?.length ? <LineageTrail items={lineage} /> : '—';
+                        })()}
                       </dd>
                     </div>
                   </dl>
@@ -576,7 +649,7 @@ export function ClassifyPage() {
                     </div>
                   )}
                 </Card>
-              </>
+              </Fragment>
             )}
           </div>
         </div>

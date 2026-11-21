@@ -108,11 +108,11 @@ export function MonitoringPage() {
     <div className="space-y-6">
       {/* Toolbar */}
       <div className="flex flex-wrap items-center justify-between gap-4">
-        <div>
-          <h2 className="text-base font-semibold text-slate-900 dark:text-slate-100">
-            Live Telemetry & Cache Observability
-          </h2>
-          <p className="mt-1 text-xs text-slate-500 dark:text-slate-400">
+        <div className="dark:on-water">
+          <h1 className="text-[clamp(1.75rem,3vw,2.5rem)] font-light leading-[1.05] tracking-[-0.035em] text-ds-ink">
+            Live telemetry &amp; cache <span className="accent-phrase text-iridescent">observability</span>
+          </h1>
+          <p className="mt-1 text-xs text-slate-500 dark:text-slate-300">
             Rolling in-memory telemetry window sampled from <span className="font-mono">/monitoring/dashboard</span>.
           </p>
         </div>
@@ -122,7 +122,7 @@ export function MonitoringPage() {
             aria-label="Polling cadence"
             value={pollIntervalMs}
             onChange={(e) => setPollIntervalMs(Number(e.target.value))}
-            className="rounded-lg border border-slate-200 dark:border-slate-800 bg-white dark:bg-[#101A2E] px-3 py-1.5 text-xs font-mono"
+            className="rounded-lg border border-slate-200 dark:border-slate-800 bg-white dark:glass px-3 py-1.5 text-xs font-mono"
           >
             <option value={5000}>Poll: 5s</option>
             <option value={10000}>Poll: 10s</option>
@@ -131,7 +131,7 @@ export function MonitoringPage() {
           <button
             type="button"
             onClick={() => setPollingEnabled((v) => !v)}
-            className="inline-flex items-center gap-1.5 rounded-lg border border-slate-200 dark:border-slate-800 bg-white dark:bg-[#101A2E] px-3 py-1.5 text-xs font-medium hover:border-cyan-500/50"
+            className="inline-flex items-center gap-1.5 rounded-lg border border-slate-200 dark:border-slate-800 bg-white dark:glass px-3 py-1.5 text-xs font-medium hover:border-cyan-500/50"
           >
             {pollingEnabled ? (
               <>
@@ -286,19 +286,19 @@ export function MonitoringPage() {
           <ErrorState title="Failed to load cache stats" error={cacheStatsQ.error} />
         ) : (
           <dl className="grid grid-cols-2 sm:grid-cols-5 gap-4">
-            <div className="rounded-lg border border-slate-200 dark:border-slate-800 bg-slate-50/70 dark:bg-[#09101D] p-3.5">
+            <div className="rounded-lg border border-slate-200 dark:border-slate-800 bg-slate-50/70 dark:bg-black/25 p-3.5">
               <dt className="text-[11px] text-slate-500">Cache Hits</dt>
               <dd className="mt-1 text-lg font-semibold font-mono tabular-nums text-emerald-600 dark:text-emerald-400">
                 {cacheStats?.hits !== undefined ? formatNumber(cacheStats.hits) : 'N/A'}
               </dd>
             </div>
-            <div className="rounded-lg border border-slate-200 dark:border-slate-800 bg-slate-50/70 dark:bg-[#09101D] p-3.5">
+            <div className="rounded-lg border border-slate-200 dark:border-slate-800 bg-slate-50/70 dark:bg-black/25 p-3.5">
               <dt className="text-[11px] text-slate-500">Cache Misses</dt>
               <dd className="mt-1 text-lg font-semibold font-mono tabular-nums text-slate-900 dark:text-slate-100">
                 {cacheStats?.misses !== undefined ? formatNumber(cacheStats.misses) : 'N/A'}
               </dd>
             </div>
-            <div className="rounded-lg border border-slate-200 dark:border-slate-800 bg-slate-50/70 dark:bg-[#09101D] p-3.5">
+            <div className="rounded-lg border border-slate-200 dark:border-slate-800 bg-slate-50/70 dark:bg-black/25 p-3.5">
               <dt className="text-[11px] text-slate-500">Hit Rate</dt>
               <dd className="mt-1 text-lg font-semibold font-mono tabular-nums text-cyan-600 dark:text-cyan-400">
                 {typeof cacheStats?.hit_rate === 'number'
@@ -306,13 +306,13 @@ export function MonitoringPage() {
                   : 'N/A'}
               </dd>
             </div>
-            <div className="rounded-lg border border-slate-200 dark:border-slate-800 bg-slate-50/70 dark:bg-[#09101D] p-3.5">
+            <div className="rounded-lg border border-slate-200 dark:border-slate-800 bg-slate-50/70 dark:bg-black/25 p-3.5">
               <dt className="text-[11px] text-slate-500">Total Keys</dt>
               <dd className="mt-1 text-lg font-semibold font-mono tabular-nums text-slate-900 dark:text-slate-100">
                 {formatNumber(cacheStats?.total_keys ?? 0)}
               </dd>
             </div>
-            <div className="rounded-lg border border-slate-200 dark:border-slate-800 bg-slate-50/70 dark:bg-[#09101D] p-3.5">
+            <div className="rounded-lg border border-slate-200 dark:border-slate-800 bg-slate-50/70 dark:bg-black/25 p-3.5">
               <dt className="text-[11px] text-slate-500">Prediction Keys</dt>
               <dd className="mt-1 text-lg font-semibold font-mono tabular-nums text-slate-900 dark:text-slate-100">
                 {formatNumber(cacheStats?.prediction_keys ?? 0)}

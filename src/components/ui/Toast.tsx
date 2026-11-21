@@ -25,12 +25,12 @@ export function ToastContainer() {
 
           const toneClass =
             item.type === 'success'
-              ? 'border-emerald-200 dark:border-emerald-800/70 bg-white dark:bg-[#0F1B2D] text-emerald-700 dark:text-emerald-300'
+              ? 'border-emerald-200 dark:border-emerald-800/70 bg-white dark:glass-strong text-emerald-700 dark:text-emerald-300'
               : item.type === 'error'
-              ? 'border-rose-200 dark:border-rose-800/70 bg-white dark:bg-[#191322] text-rose-700 dark:text-rose-300'
+              ? 'border-rose-200 dark:border-rose-800/70 bg-white dark:glass-strong text-rose-700 dark:text-rose-300'
               : item.type === 'warning'
-              ? 'border-amber-200 dark:border-amber-800/70 bg-white dark:bg-[#19181A] text-amber-700 dark:text-amber-300'
-              : 'border-cyan-200 dark:border-cyan-800/70 bg-white dark:bg-[#101A2E] text-cyan-700 dark:text-cyan-300';
+              ? 'border-amber-200 dark:border-amber-800/70 bg-white dark:glass-strong text-amber-700 dark:text-amber-300'
+              : 'border-cyan-200 dark:border-cyan-800/70 bg-white dark:glass-strong text-cyan-700 dark:text-cyan-300';
 
           return (
             <motion.div
